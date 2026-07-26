@@ -686,20 +686,15 @@
     }
 
     .progress-ring {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      transform: rotate(-90deg);
-      z-index: 0;
-      pointer-events: none;
+      display: none;
     }
 
     .progress-ring circle {
       fill: transparent;
-      stroke-width: 8;
+      stroke: transparent;
+      stroke-width: 0;
       stroke-linecap: round;
-      transition: stroke var(--transition), stroke-dashoffset var(--transition);
+      transition: none;
     }
 
     .center-toolbar {
