@@ -1,0 +1,2557 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pomodoro Study Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Lora:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --tinta: #232320;
+      --pergaminho: #EFEAE1;
+      --petroleo: #1F6B67;
+      --petroleo-escuro: #144A47;
+      --terracota-suave: #B5654A;
+      --vermelho-pausa: #A63D2F;
+      --bg: var(--pergaminho);
+      --surface: #fffafa;
+      --text: #232320;
+      --muted: #5d5b57;
+      --shadow: 0 22px 48px rgba(35, 35, 32, 0.12);
+      --radius: 28px;
+      --transition: 240ms ease;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: radial-gradient(circle at top left, rgba(31, 107, 103, 0.18), transparent 26%), linear-gradient(180deg, #f8f2eb 0%, #efeae1 100%);
+      color: var(--text);
+      font-family: "Inter", system-ui, sans-serif;
+      line-height: 1.55;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: minmax(68px, 280px) minmax(320px, 1fr) minmax(68px, 280px);
+      gap: 20px;
+      width: min(1220px, 100%);
+      min-height: calc(100vh - 48px);
+      align-items: stretch;
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(35, 35, 32, 0.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      min-height: 420px;
+      transition: transform 260ms ease, width 260ms ease, opacity 260ms ease, box-shadow 260ms ease;
+    }
+
+    .panel__content {
+      padding: 28px 24px;
+      flex: 1;
+      overflow: auto;
+      min-height: 0;
+    }
+
+    .panel h2 {
+      margin: 0 0 14px;
+      font-family: "Lora", Georgia, serif;
+      font-size: 1.5rem;
+      color: var(--tinta);
+    }
+
+    .panel p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .tools-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .tab-button {
+      border: 1px solid rgba(31, 107, 103, 0.14);
+      background: rgba(255, 255, 255, 0.95);
+      color: var(--tinta);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font: 600 0.94rem "Inter", system-ui, sans-serif;
+      cursor: pointer;
+      transition: background var(--transition), border-color var(--transition), color var(--transition), transform var(--transition);
+    }
+
+    .tab-button:hover,
+    .tab-button:focus-visible {
+      background: rgba(31, 107, 103, 0.12);
+      outline: none;
+      transform: translateY(-1px);
+    }
+
+    .tab-button.active {
+      background: var(--petroleo);
+      color: var(--pergaminho);
+      border-color: var(--petroleo);
+    }
+
+    .tab-panel {
+      max-height: 0;
+      opacity: 0;
+      visibility: hidden;
+      overflow: hidden;
+      transition: opacity 260ms ease, max-height 260ms ease, transform 260ms ease;
+      transform: translateY(10px);
+    }
+
+    .tab-panel.active {
+      max-height: 2200px;
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .button {
+      border-radius: 999px;
+      border: none;
+      padding: 10px 16px;
+      font: 600 0.95rem "Inter", system-ui, sans-serif;
+      cursor: pointer;
+      transition: transform var(--transition), background var(--transition), color var(--transition), border-color var(--transition);
+    }
+
+    .button:hover,
+    .button:focus-visible {
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .button--primary {
+      background: var(--petroleo);
+      color: var(--pergaminho);
+    }
+
+    .button--secondary:hover {
+      background: rgba(31, 107, 103, 0.14);
+    }
+
+    .button--secondary {
+      background: rgba(31, 107, 103, 0.08);
+      color: var(--petroleo-escuro);
+      border: 1px solid rgba(31, 107, 103, 0.16);
+    }
+
+    .panel-gear {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      border: none;
+      background: rgba(31, 107, 103, 0.1);
+      color: var(--petroleo-escuro);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+
+    .panel-gear:hover,
+    .panel-gear:focus-visible {
+      background: rgba(31, 107, 103, 0.16);
+      outline: none;
+    }
+
+    .task-filters,
+    .task-form {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(35, 35, 32, 0.08);
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .task-filters.hidden,
+    .task-form.hidden {
+      display: none;
+    }
+
+    .task-filters h3,
+    .filter-group h4 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+      color: var(--tinta);
+      font-family: "Lora", Georgia, serif;
+    }
+
+    .filter-group {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .filter-group label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+      font-size: 0.92rem;
+      cursor: pointer;
+    }
+
+    .task-form .form-row {
+      margin-bottom: 14px;
+    }
+
+    .task-form label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.92rem;
+      color: var(--tinta);
+      font-weight: 600;
+    }
+
+    .task-form input[type="text"],
+    .task-form input[type="date"],
+    .task-form select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(35, 35, 32, 0.12);
+      background: #fff;
+      color: var(--tinta);
+      font: inherit;
+    }
+
+    .task-form .form-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .task-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    .task-item {
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(35, 35, 32, 0.08);
+      border-radius: 18px;
+      padding: 14px 14px 12px;
+      cursor: pointer;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+
+    .task-item:hover,
+    .task-item:focus-within {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 30px rgba(35, 35, 32, 0.08);
+    }
+
+    .task-item-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .task-item-title {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--tinta);
+      line-height: 1.3;
+      flex: 1;
+    }
+
+    .task-delete,
+    .task-template {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 1.1rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 4px;
+      margin: -4px;
+    }
+
+    .task-template:hover,
+    .task-delete:hover,
+    .task-template:focus-visible,
+    .task-delete:focus-visible {
+      color: var(--petroleo-escuro);
+      outline: none;
+    }
+
+    .task-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .task-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .task-status {
+      background: rgba(31, 107, 103, 0.08);
+      color: var(--tinta);
+    }
+
+    .task-priority {
+      color: var(--pergaminho);
+    }
+
+    .task-specs {
+      display: grid;
+      gap: 8px;
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+
+    .task-tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .task-tag {
+      background: rgba(31, 107, 103, 0.1);
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+    }
+
+    .placeholder-text {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      padding: 14px 0;
+    }
+
+    .mindmap-controls {
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: flex-start;
+    }
+
+    .mindmap-canvas {
+      position: relative;
+      min-height: 420px;
+      background: linear-gradient(180deg, rgba(239, 234, 225, 0.85), rgba(255, 255, 255, 0.95));
+      border: 1px solid rgba(35, 35, 32, 0.12);
+      border-radius: 24px;
+      overflow: auto;
+      padding: 24px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .mindmap-empty {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      padding: 18px;
+      border: 1px dashed rgba(35, 35, 32, 0.12);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.7);
+      text-align: center;
+    }
+
+    .mindmap-card {
+      position: absolute;
+      min-width: 180px;
+      min-height: 120px;
+      max-width: 320px;
+      background: rgba(254, 250, 236, 0.95);
+      border: 1px solid rgba(35, 35, 32, 0.12);
+      border-radius: 18px;
+      box-shadow: 0 12px 24px rgba(35, 35, 32, 0.12);
+      padding: 16px;
+      display: grid;
+      gap: 10px;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .mindmap-card:active {
+      cursor: grabbing;
+    }
+
+    .mindmap-card h4 {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--tinta);
+    }
+
+    .mindmap-card textarea {
+      width: 100%;
+      min-height: 60px;
+      border: 1px solid rgba(35, 35, 32, 0.12);
+      border-radius: 14px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.97);
+      color: var(--tinta);
+      font: inherit;
+      resize: none;
+    }
+
+    .mindmap-card input[type="text"] {
+      width: 100%;
+      border: 1px solid rgba(35, 35, 32, 0.12);
+      border-radius: 14px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.97);
+      color: var(--tinta);
+      font: inherit;
+    }
+
+    .card-resize-handle {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      bottom: 10px;
+      right: 10px;
+      border-radius: 50%;
+      background: rgba(35, 35, 32, 0.14);
+      cursor: se-resize;
+      display: grid;
+      place-items: center;
+      color: rgba(35, 35, 32, 0.75);
+      font-size: 0.85rem;
+      transition: background 240ms ease, transform 240ms ease;
+    }
+
+    .card-resize-handle:hover,
+    .card-resize-handle:focus-visible {
+      background: rgba(31, 107, 103, 0.18);
+      transform: scale(1.05);
+      outline: none;
+    }
+
+    .notes-form,
+    .recovery-card {
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(35, 35, 32, 0.08);
+      border-radius: 20px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .notes-form label,
+    .recovery-card h3 {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--tinta);
+      font-weight: 600;
+      font-family: "Inter", system-ui, sans-serif;
+    }
+
+    .notes-form textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(35, 35, 32, 0.12);
+      resize: vertical;
+      font: inherit;
+      color: var(--tinta);
+      background: #fff;
+    }
+
+    .recovery-card {
+      display: grid;
+      gap: 18px;
+    }
+
+    .recovery-content {
+      display: grid;
+      gap: 16px;
+    }
+
+    .recovery-info {
+      display: grid;
+      gap: 12px;
+      color: var(--text);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .mini-timer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(31, 107, 103, 0.08);
+      color: var(--petroleo-escuro);
+      font-weight: 700;
+      font-family: "IBM Plex Mono", monospace;
+    }
+
+    .mini-timer span {
+      font-size: 1.25rem;
+    }
+
+    .recovery-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .toggle-handle {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 66px;
+      display: grid;
+      place-items: center;
+      background: rgba(31, 107, 103, 0.98);
+      color: var(--pergaminho);
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      transition: transform var(--transition), background var(--transition);
+      font-size: 1.4rem;
+      box-shadow: 0 14px 28px rgba(31, 107, 103, 0.24);
+    }
+
+    .toggle-handle:hover,
+    .toggle-handle:focus-visible {
+      background: var(--petroleo-escuro);
+      outline: none;
+      transform: translateY(-50%) scale(1.03);
+      box-shadow: 0 18px 30px rgba(31, 107, 103, 0.28);
+    }
+
+    .panel--left .toggle-handle {
+      right: -22px;
+      border-top-right-radius: 22px;
+      border-bottom-right-radius: 22px;
+    }
+
+    .panel--right .toggle-handle {
+      left: -22px;
+      border-top-left-radius: 22px;
+      border-bottom-left-radius: 22px;
+    }
+
+    .panel--left.closed {
+      transform: translateX(-90%);
+      opacity: 0.98;
+    }
+
+    .panel--left.closed .toggle-handle {
+      right: -22px;
+      transform: translateY(-50%) rotate(0deg);
+    }
+
+    .panel--right.closed {
+      transform: translateX(90%);
+      opacity: 0.98;
+    }
+
+    .panel--right.closed .toggle-handle {
+      left: -22px;
+      transform: translateY(-50%) rotate(0deg);
+    }
+
+    .panel--right.open .toggle-handle,
+    .panel--left.open .toggle-handle {
+      pointer-events: auto;
+    }
+
+    .center-panel {
+      position: relative;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(35, 35, 32, 0.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 520px;
+      padding: 36px 24px;
+    }
+
+    .center-panel__inner {
+      width: min(420px, 100%);
+      text-align: center;
+    }
+
+    .hero-circle {
+      width: min(360px, 100%);
+      aspect-ratio: 1/1;
+      margin: 0 auto 26px;
+      border-radius: 50%;
+      background: radial-gradient(circle at top, rgba(31, 107, 103, 0.2), rgba(255, 234, 217, 0.7));
+      border: 1px solid rgba(35, 35, 32, 0.08);
+      display: grid;
+      place-items: center;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7), 0 22px 40px rgba(35, 35, 32, 0.08);
+      transition: background var(--transition), border-color var(--transition);
+    }
+
+    .hero-circle.long-break {
+      background: radial-gradient(circle at top, rgba(166, 61, 47, 0.16), rgba(255, 238, 236, 0.92));
+      border-color: rgba(166, 61, 47, 0.25);
+    }
+
+    .hero-circle span {
+      font-family: "IBM Plex Mono", Menlo, monospace;
+      font-size: clamp(3rem, 7vw, 5.25rem);
+      letter-spacing: -0.04em;
+      font-variant-numeric: tabular-nums;
+      color: var(--tinta);
+      z-index: 1;
+    }
+
+    .hero-circle .hero-content {
+      position: relative;
+      display: grid;
+      place-items: center;
+      gap: 0.5rem;
+      text-align: center;
+      z-index: 1;
+    }
+
+    .hero-circle .session-label {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: "Inter", system-ui, sans-serif;
+    }
+
+    .progress-ring {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+      z-index: 0;
+    }
+
+    .progress-ring circle {
+      fill: transparent;
+      stroke-width: 10;
+      stroke-linecap: round;
+      transition: stroke var(--transition), stroke-dashoffset var(--transition);
+    }
+
+    .center-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .scale-select {
+      position: relative;
+      width: min(280px, 100%);
+    }
+
+    .scale-button {
+      width: 100%;
+      padding: 12px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 107, 103, 0.16);
+      background: rgba(31, 107, 103, 0.08);
+      color: var(--petroleo-escuro);
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      transition: box-shadow var(--transition), transform var(--transition);
+    }
+
+    .scale-button:hover,
+    .scale-button:focus-visible {
+      box-shadow: 0 10px 24px rgba(31, 107, 103, 0.1);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .scale-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 12px;
+      background: #fff;
+      border: 1px solid rgba(35, 35, 32, 0.12);
+      border-radius: 18px;
+      box-shadow: 0 20px 40px rgba(35, 35, 32, 0.12);
+      overflow: hidden;
+      z-index: 2;
+      opacity: 0;
+      transform: translateY(-8px);
+      pointer-events: none;
+      transition: opacity var(--transition), transform var(--transition);
+    }
+
+    .scale-menu.open {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .scale-option {
+      width: 100%;
+      border: none;
+      background: transparent;
+      padding: 14px 18px;
+      text-align: left;
+      color: var(--tinta);
+      font-family: "Inter", system-ui, sans-serif;
+      font-size: 0.96rem;
+      cursor: pointer;
+      transition: background var(--transition);
+    }
+
+    .scale-option:hover,
+    .scale-option:focus-visible {
+      background: rgba(31, 107, 103, 0.08);
+      outline: none;
+    }
+
+    .stats-summary {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(31, 107, 103, 0.1);
+      border-radius: 16px;
+      padding: 12px 14px;
+      min-width: 90px;
+      text-align: center;
+      box-shadow: 0 12px 24px rgba(31, 107, 103, 0.08);
+    }
+
+    .stat-value {
+      display: block;
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--petroleo-escuro);
+      line-height: 1;
+    }
+
+    .stat-card small {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .cycle-counter {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 12px 18px;
+      background: rgba(31, 107, 103, 0.08);
+      border-radius: 999px;
+      color: var(--petroleo-escuro);
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .range-control {
+      margin-top: 20px;
+      text-align: left;
+    }
+
+    .range-control.hidden {
+      display: none;
+    }
+
+    .range-control label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: var(--tinta);
+    }
+
+    .range-value {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 1rem;
+      color: var(--muted);
+    }
+
+    .range-value span {
+      font-weight: 700;
+      color: var(--tinta);
+    }
+
+    .range-control input[type="range"] {
+      width: 100%;
+      accent-color: var(--petroleo);
+    }
+
+    .start-button {
+      margin: 26px auto 0;
+      padding: 14px 28px;
+      border: 2px solid var(--petroleo);
+      border-radius: 999px;
+      background: rgba(31, 107, 103, 0.08);
+      color: var(--petroleo-escuro);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform var(--transition), background var(--transition), color var(--transition);
+    }
+
+    .start-button:hover,
+    .start-button:focus-visible {
+      transform: translateY(-1px);
+    }
+
+    .start-button[disabled] {
+      border-color: rgba(31, 107, 103, 0.2);
+      color: rgba(31, 107, 103, 0.4);
+      background: rgba(31, 107, 103, 0.05);
+      cursor: not-allowed;
+    }
+
+    .start-button:focus-visible {
+      outline: 3px solid rgba(181, 101, 74, 0.35);
+      outline-offset: 4px;
+    }
+
+    .gear-trigger {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      width: 52px;
+      height: 52px;
+      border-radius: 18px;
+      border: none;
+      background: var(--petroleo);
+      color: var(--pergaminho);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      z-index: 10;
+      box-shadow: 0 16px 34px rgba(31, 107, 103, 0.26);
+      transition: transform var(--transition), background var(--transition);
+    }
+
+    .gear-trigger:hover,
+    .gear-trigger:focus-visible {
+      transform: scale(1.05);
+      background: var(--petroleo-escuro);
+      outline: none;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(420px, 100%);
+      max-width: 420px;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.98);
+      border-left: 1px solid rgba(35, 35, 32, 0.08);
+      box-shadow: -18px 0 48px rgba(35, 35, 32, 0.14);
+      transform: translateX(108%);
+      transition: transform var(--transition);
+      z-index: 9;
+      padding: 34px 28px;
+    }
+
+    .drawer.open {
+      transform: translateX(0);
+    }
+
+    .drawer-open .app-shell {
+      transform: translateX(-120px);
+      transition: transform var(--transition);
+    }
+
+    .drawer h2 {
+      margin-top: 0;
+    }
+
+    .settings-group {
+      display: grid;
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    .settings-card {
+      background: rgba(31, 107, 103, 0.05);
+      border: 1px solid rgba(31, 107, 103, 0.12);
+      border-radius: 20px;
+      padding: 18px 20px;
+    }
+
+    .settings-card h3 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+      color: var(--tinta);
+      font-family: "Lora", Georgia, serif;
+    }
+
+    .toggle-control {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(35, 35, 32, 0.06);
+    }
+
+    .toggle-control:last-child {
+      border-bottom: none;
+    }
+
+    .toggle-control span {
+      font-size: 0.96rem;
+      color: var(--tinta);
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 54px;
+      height: 30px;
+      border-radius: 999px;
+      background: rgba(35, 35, 32, 0.12);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      inset: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.95);
+      transition: transform var(--transition), background var(--transition);
+      width: 22px;
+      height: 22px;
+      transform: translateX(0);
+      box-shadow: 0 6px 12px rgba(35, 35, 32, 0.15);
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      transform: translateX(24px);
+      background: var(--petroleo);
+    }
+
+    .settings-field {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .settings-field label {
+      font-size: 0.95rem;
+      color: var(--tinta);
+      font-weight: 600;
+    }
+
+    .settings-field select,
+    .settings-field input[type="range"] {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid rgba(35, 35, 32, 0.12);
+      padding: 10px 12px;
+      font: inherit;
+      color: var(--tinta);
+      background: #fff;
+    }
+
+    .settings-field .range-value {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .drawer p {
+      color: var(--muted);
+    }
+
+    .theme-dark body,
+    .theme-dark html {
+      background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.08), transparent 30%), linear-gradient(180deg, #111418 0%, #1f262a 100%);
+      color: #e8eef2;
+    }
+
+    .theme-dark .panel,
+    .theme-dark .center-panel,
+    .theme-dark .drawer {
+      background: rgba(18, 24, 30, 0.94);
+      border-color: rgba(255, 255, 255, 0.08);
+      color: #e8eef2;
+    }
+
+    .theme-dark .task-item,
+    .theme-dark .task-filters,
+    .theme-dark .task-form,
+    .theme-dark .notes-form,
+    .theme-dark .recovery-card,
+    .theme-dark .mindmap-card,
+    .theme-dark .settings-card,
+    .theme-dark .scale-menu,
+    .theme-dark .mindmap-canvas {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .theme-dark .button--primary,
+    .theme-dark .gear-trigger,
+    .theme-dark .toggle-handle {
+      background: var(--petroleo);
+      color: var(--pergaminho);
+    }
+
+    .theme-dark .button--secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #e8eef2;
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .theme-dark .tab-button {
+      background: rgba(255, 255, 255, 0.06);
+      color: #e8eef2;
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .theme-dark .tab-button.active {
+      background: rgba(31, 107, 103, 0.9);
+      color: var(--pergaminho);
+      border-color: rgba(31, 107, 103, 0.9);
+    }
+
+    @media (max-width: 1000px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .panel,
+      .center-panel {
+        min-height: auto;
+      }
+
+      .panel--left,
+      .panel--right {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        border-radius: 0;
+        transform: translateX(-100%);
+        box-shadow: 24px 0 64px rgba(35, 35, 32, 0.16);
+      }
+
+      .panel--left.open {
+        transform: translateX(0);
+      }
+
+      .panel--right {
+        transform: translateX(100%);
+      }
+
+      .panel--right.open {
+        transform: translateX(0);
+      }
+
+      .panel__content {
+        padding: 32px 24px;
+      }
+
+      .toggle-handle {
+        top: 18px;
+        transform: none;
+        width: 44px;
+        height: 44px;
+      }
+
+      .panel--left .toggle-handle {
+        right: 16px;
+      }
+
+      .panel--right .toggle-handle {
+        left: 16px;
+      }
+
+      .center-panel {
+        min-height: 520px;
+      }
+
+      body {
+        padding: 16px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      body {
+        padding: 12px;
+      }
+
+      .center-panel {
+        padding: 28px 18px;
+      }
+
+      .hero-circle {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 375px) {
+      body {
+        padding: 10px;
+      }
+
+      .app-shell {
+        width: 100%;
+      }
+
+      .panel__content {
+        padding: 22px 18px;
+      }
+
+      .tab-button {
+        padding: 10px 8px;
+        font-size: 0.9rem;
+      }
+
+      .start-button {
+        width: 100%;
+        padding: 14px 20px;
+      }
+
+      .hero-circle {
+        margin-bottom: 20px;
+      }
+
+      .center-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      :root {
+        scroll-behavior: auto;
+      }
+
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button type="button" class="gear-trigger" aria-expanded="false" aria-controls="settings-drawer" aria-label="Abrir configurações">
+    ⚙
+  </button>
+
+  <div class="app-shell">
+    <section class="panel panel--left closed" id="left-panel" aria-label="Ferramentas de Estudo">
+      <button class="toggle-handle" type="button" aria-expanded="false" aria-controls="left-panel" aria-label="Abrir Ferramentas de Estudo">
+        &gt;
+      </button>
+      <div class="panel__content">
+        <div class="tools-header">
+          <div>
+            <h2>Ferramentas de Estudo</h2>
+            <p>Gerencie suas tarefas e abra as demais ferramentas em breve.</p>
+          </div>
+          <button class="panel-gear" type="button" id="tasks-gear" aria-expanded="false" aria-label="Abrir filtros de tarefas">⚙</button>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="Abas de ferramentas">
+          <button class="tab-button active" type="button" role="tab" aria-selected="true" data-tab="tasks" id="tab-tasks">Tarefas</button>
+          <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab="notes" id="tab-notes">Bloco de Notas</button>
+          <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab="mindmap" id="tab-mindmap">Mapa Mental</button>
+        </div>
+
+        <div class="tab-panels">
+          <section class="tab-panel active" id="panel-tasks" role="tabpanel" aria-labelledby="tab-tasks">
+            <div class="tasks-header">
+              <button class="button button--primary" type="button" id="add-task-button">Adicionar tarefa</button>
+            </div>
+
+            <div class="task-filters hidden" id="task-filters" aria-hidden="true">
+              <h3>Filtros</h3>
+              <div class="filter-group">
+                <h4>Status</h4>
+                <label><input type="checkbox" value="todo" data-filter-type="status" /> A Fazer</label>
+                <label><input type="checkbox" value="doing" data-filter-type="status" /> Em Andamento</label>
+                <label><input type="checkbox" value="done" data-filter-type="status" /> Concluída</label>
+                <label><input type="checkbox" value="cancelled" data-filter-type="status" /> Cancelada</label>
+              </div>
+              <div class="filter-group">
+                <h4>Prioridade</h4>
+                <label><input type="checkbox" value="high" data-filter-type="priority" /> Alta</label>
+                <label><input type="checkbox" value="moderate" data-filter-type="priority" /> Moderada</label>
+                <label><input type="checkbox" value="low" data-filter-type="priority" /> Baixa</label>
+                <label><input type="checkbox" value="paused" data-filter-type="priority" /> Pausada</label>
+              </div>
+              <div class="filter-group">
+                <h4>Prazo</h4>
+                <label><input type="checkbox" value="today" data-filter-type="due" /> Hoje</label>
+                <label><input type="checkbox" value="week" data-filter-type="due" /> Esta semana</label>
+                <label><input type="checkbox" value="no-date" data-filter-type="due" /> Sem prazo</label>
+              </div>
+              <div class="filter-group">
+                <h4>Tags</h4>
+                <div id="filter-tags" class="filter-tag-list">Nenhuma tag disponível</div>
+              </div>
+            </div>
+
+            <form class="task-form hidden" id="task-form" autocomplete="off">
+              <div class="form-row">
+                <label for="task-name">Nome da tarefa</label>
+                <input type="text" id="task-name" required />
+              </div>
+              <div class="form-row">
+                <label for="task-status">Status</label>
+                <select id="task-status">
+                  <option value="todo">📝 A Fazer</option>
+                  <option value="doing">⏳ Em Andamento</option>
+                  <option value="done">✅ Concluída</option>
+                  <option value="cancelled">✖ Cancelada</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label for="task-priority">Prioridade</label>
+                <select id="task-priority">
+                  <option value="high">Alta</option>
+                  <option value="moderate">Moderada</option>
+                  <option value="low">Baixa</option>
+                  <option value="paused">Pausada</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label for="task-date">Prazo</label>
+                <input type="date" id="task-date" />
+              </div>
+              <div class="form-row">
+                <label for="task-date-text">Prazo (dd/mm/aaaa)</label>
+                <input type="text" id="task-date-text" placeholder="dd/mm/aaaa" />
+              </div>
+              <div class="form-row">
+                <label for="task-tags">Tags (vírgula)</label>
+                <input type="text" id="task-tags" placeholder="estudo, urgente" />
+              </div>
+              <div class="form-actions">
+                <button class="button button--primary" type="submit">Salvar</button>
+                <button class="button button--secondary" type="button" id="cancel-task">Cancelar</button>
+              </div>
+            </form>
+
+            <div class="placeholder-text" id="task-empty">Nenhuma tarefa ainda. Clique em "Adicionar tarefa" para começar.</div>
+            <ul class="task-list" id="task-list"></ul>
+          </section>
+
+          <section class="tab-panel" id="panel-notes" role="tabpanel" aria-labelledby="tab-notes">
+            <form class="notes-form" id="notes-form" autocomplete="off">
+              <label for="note-title">Título da anotação</label>
+              <input type="text" id="note-title" placeholder="Ex: Revisão sobre Frações" />
+              <label for="note-body">Corpo da anotação</label>
+              <textarea id="note-body" placeholder="Escreva sua anotação aqui..."></textarea>
+              <div class="form-actions">
+                <button class="button button--primary" type="submit" id="save-note-button">Salvar</button>
+              </div>
+            </form>
+
+            <div class="recovery-card">
+              <h3>Prática de Recuperação</h3>
+              <div class="recovery-content">
+                <div class="recovery-info">
+                  <p>Revise o que você estudou nos últimos minutos, tentando recordar de memória, sem consultar nenhum material. Esse tipo de recordação ativa fortalece a retenção mais do que reler o conteúdo passivamente.</p>
+                </div>
+                <div class="mini-timer">
+                  <span id="recovery-timer-display">10:00</span>
+                  <button class="button button--secondary" type="button" id="recovery-toggle">Iniciar</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="tab-panel" id="panel-mindmap" role="tabpanel" aria-labelledby="tab-mindmap">
+            <div class="mindmap-controls">
+              <button class="button button--primary" type="button" id="add-card-button">Criar cartão</button>
+            </div>
+            <div class="mindmap-canvas" id="mindmap-canvas" tabindex="0" aria-label="Canvas de mapa mental">
+              <div class="mindmap-empty">Clique em "Criar cartão" para começar a adicionar post-its ao quadro.</div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <main class="center-panel">
+      <div class="center-panel__inner">
+        <div class="center-toolbar">
+          <div class="scale-select">
+            <button class="scale-button" type="button" aria-haspopup="listbox" aria-expanded="false" id="scale-button">Escala A: Foco Denso</button>
+            <div class="scale-menu" id="scale-menu" role="listbox" aria-labelledby="scale-button">
+              <button class="scale-option" type="button" data-scale="A" role="option">Escala A: Foco Denso</button>
+              <button class="scale-option" type="button" data-scale="B" role="option">Escala B: Foco Moderado</button>
+              <button class="scale-option" type="button" data-scale="C" role="option">Escala C: Foco Leve</button>
+            </div>
+          </div>
+          <div class="stats-summary">
+            <div class="stat-card">
+              <span class="stat-value" id="today-cycles">0</span>
+              <small>Hoje</small>
+            </div>
+            <div class="stat-card">
+              <span class="stat-value" id="week-cycles">0</span>
+              <small>Semana</small>
+            </div>
+          </div>
+          <div class="cycle-counter" aria-live="polite">Ciclos <strong id="cycle-count">0</strong></div>
+        </div>
+
+        <div class="hero-circle">
+          <svg class="progress-ring" viewBox="0 0 120 120" aria-hidden="true">
+            <circle cx="60" cy="60" r="52" stroke="var(--petroleo)" opacity="0.3"></circle>
+            <circle class="progress-ring__circle" cx="60" cy="60" r="52" stroke="var(--petroleo)" stroke-dasharray="326.7" stroke-dashoffset="0"></circle>
+          </svg>
+          <div class="hero-content">
+            <span id="timer-display">20:00</span>
+            <p class="session-label" id="session-label">Sessão de Imersão</p>
+          </div>
+        </div>
+
+        <div class="range-control hidden" id="focus-range">
+          <label for="focus-duration">Duração do foco</label>
+          <div class="range-value"><span id="focus-value">25</span> min</div>
+          <input type="range" id="focus-duration" min="25" max="35" value="25" step="1" />
+        </div>
+
+        <button class="start-button" type="button" id="start-button">Iniciar</button>
+      </div>
+    </main>
+
+    <section class="panel panel--right closed" id="right-panel" aria-label="Configurações rápidas">
+      <button class="toggle-handle" type="button" aria-expanded="false" aria-controls="right-panel" aria-label="Abrir Configurações rápidas">
+        &lt;
+      </button>
+      <div class="panel__content">
+        <h2>Configurações</h2>
+        <p>Use o ícone de engrenagem para abrir as configurações completas da interface.</p>
+      </div>
+    </section>
+  </div>
+
+  <aside class="drawer" id="settings-drawer" aria-hidden="true">
+    <h2>Configurações</h2>
+    <p>Controle a ativação automática do cronômetro e escolha o som do alarme.</p>
+    <div class="settings-group">
+      <div class="settings-card">
+        <h3>Início automático</h3>
+        <div class="toggle-control">
+          <span>Foco</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="auto-focus" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-control">
+          <span>Pausa</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="auto-pause" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <h3>Alarme</h3>
+        <div class="settings-field">
+          <label for="alarm-sound">Som</label>
+          <select id="alarm-sound">
+            <option value="digital">Digital</option>
+            <option value="tremolo">Tremido</option>
+            <option value="sino">Sino</option>
+          </select>
+        </div>
+        <div class="settings-field">
+          <label for="alarm-volume">Volume</label>
+          <div class="range-value"><span id="volume-value">70%</span></div>
+          <input type="range" id="alarm-volume" min="0" max="100" value="70" />
+        </div>
+      </div>
+      <div class="settings-card">
+        <h3>Tema</h3>
+        <div class="settings-field">
+          <label for="theme-select">Aparência</label>
+          <select id="theme-select">
+            <option value="light">Claro</option>
+            <option value="dark">Escuro</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <script>
+    const leftPanel = document.querySelector('.panel--left');
+    const rightPanel = document.querySelector('.panel--right');
+    const leftToggle = leftPanel.querySelector('.toggle-handle');
+    const rightToggle = rightPanel.querySelector('.toggle-handle');
+    const gear = document.querySelector('.gear-trigger');
+    const drawer = document.querySelector('.drawer');
+    const taskGear = document.getElementById('tasks-gear');
+    const taskFilters = document.getElementById('task-filters');
+    const addTaskButton = document.getElementById('add-task-button');
+    const taskForm = document.getElementById('task-form');
+    const taskList = document.getElementById('task-list');
+    const taskEmpty = document.getElementById('task-empty');
+    const taskNameInput = document.getElementById('task-name');
+    const taskStatusInput = document.getElementById('task-status');
+    const taskPriorityInput = document.getElementById('task-priority');
+    const taskDateInput = document.getElementById('task-date');
+    const taskDateText = document.getElementById('task-date-text');
+    const taskTagsInput = document.getElementById('task-tags');
+    const filterTagsContainer = document.getElementById('filter-tags');
+    const tabButtons = [...document.querySelectorAll('.tab-button')];
+    const tabPanels = [...document.querySelectorAll('.tab-panel')];
+    const scaleButton = document.getElementById('scale-button');
+    const scaleMenu = document.getElementById('scale-menu');
+    const scaleOptions = [...document.querySelectorAll('.scale-option')];
+    const cycleCountEl = document.getElementById('cycle-count');
+    const timerDisplay = document.getElementById('timer-display');
+    const sessionLabel = document.getElementById('session-label');
+    const focusRange = document.getElementById('focus-range');
+    const focusValue = document.getElementById('focus-value');
+    const focusDurationInput = document.getElementById('focus-duration');
+    const startButton = document.getElementById('start-button');
+    const autoFocusToggle = document.getElementById('auto-focus');
+    const autoPauseToggle = document.getElementById('auto-pause');
+    const soundSelect = document.getElementById('alarm-sound');
+    const volumeInput = document.getElementById('alarm-volume');
+    const volumeValue = document.getElementById('volume-value');
+    const noteTitleInput = document.getElementById('note-title');
+    const noteBodyInput = document.getElementById('note-body');
+    const notesForm = document.getElementById('notes-form');
+    const recoveryTimerDisplay = document.getElementById('recovery-timer-display');
+    const recoveryToggle = document.getElementById('recovery-toggle');
+    const addCardButton = document.getElementById('add-card-button');
+    const mindmapCanvas = document.getElementById('mindmap-canvas');
+    const themeSelect = document.getElementById('theme-select');
+    const ringCircle = document.querySelector('.progress-ring__circle');
+
+    const CIRCUMFERENCE = 2 * Math.PI * 52;
+    ringCircle.style.strokeDasharray = `${CIRCUMFERENCE.toFixed(1)}`;
+
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    let nextAutoAdvanceTimeout = null;
+
+    const settings = {
+      autoFocus: false,
+      autoPause: false,
+      alarmSound: 'digital',
+      volume: 0.7,
+      theme: 'light'
+    };
+
+    const storageKey = 'pomodoro-study-hub';
+
+    const statsState = {
+      completedCycles: []
+    };
+
+    function isArtifactStorageAvailable() {
+      return window.storage && typeof window.storage.get === 'function' && typeof window.storage.set === 'function';
+    }
+
+    async function storageGet(key) {
+      // Se estiver dentro de um ambiente artifact com window.storage,
+      // use-o em vez de localStorage para persistência compatível.
+      if (isArtifactStorageAvailable()) {
+        try {
+          return await window.storage.get(key);
+        } catch {
+          return null;
+        }
+      }
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return null;
+      }
+    }
+
+    async function storageSet(key, value) {
+      if (isArtifactStorageAvailable()) {
+        try {
+          await window.storage.set(key, value);
+          return;
+        } catch {
+          /* fall back to localStorage */
+        }
+      }
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function saveAppState() {
+      const payload = {
+        settings,
+        taskState: {
+          nextId: taskState.nextId,
+          tasks: taskState.tasks,
+          filters: {
+            status: [...taskState.filters.status],
+            priority: [...taskState.filters.priority],
+            due: [...taskState.filters.due],
+            tags: [...taskState.filters.tags]
+          }
+        },
+        notesDraft: {
+          title: noteTitleInput.value,
+          body: noteBodyInput.value
+        },
+        mindmapState: {
+          nextId: mindmapState.nextId,
+          cards: mindmapState.cards
+        },
+        state: {
+          currentScale: state.currentScale,
+          currentPhase: state.currentPhase,
+          remainingSeconds: state.remainingSeconds,
+          totalSeconds: state.totalSeconds,
+          cycleCount: state.cycleCount,
+          isRunning: state.isRunning,
+          isPaused: state.isPaused,
+          activeTab: tabButtons.find((button) => button.classList.contains('active'))?.dataset.tab || 'tasks'
+        },
+        statsState: {
+          completedCycles: statsState.completedCycles
+        }
+      };
+      storageSet(storageKey, payload);
+    }
+
+    async function loadAppState() {
+      const saved = await storageGet(storageKey);
+      if (!saved) return;
+
+      if (saved.settings) {
+        Object.assign(settings, saved.settings);
+        autoFocusToggle.checked = settings.autoFocus;
+        autoPauseToggle.checked = settings.autoPause;
+        soundSelect.value = settings.alarmSound;
+        volumeInput.value = Math.round(settings.volume * 100);
+        volumeValue.textContent = `${volumeInput.value}%`;
+            themeSelect.value = settings.theme;
+        applyTheme(settings.theme);
+      }
+
+      if (saved.taskState) {
+        taskState.tasks = saved.taskState.tasks || [];
+        taskState.nextId = saved.taskState.nextId || Math.max(0, ...taskState.tasks.map((task) => task.id)) + 1;
+        taskState.filters.status = new Set(saved.taskState.filters?.status || []);
+        taskState.filters.priority = new Set(saved.taskState.filters?.priority || []);
+        taskState.filters.due = new Set(saved.taskState.filters?.due || []);
+        taskState.filters.tags = new Set(saved.taskState.filters?.tags || []);
+      }
+
+      if (saved.notesDraft) {
+        noteTitleInput.value = saved.notesDraft.title || '';
+        noteBodyInput.value = saved.notesDraft.body || '';
+      }
+
+      if (saved.mindmapState) {
+        mindmapState.cards = saved.mindmapState.cards || [];
+        mindmapState.nextId = saved.mindmapState.nextId || Math.max(0, ...mindmapState.cards.map((card) => card.id)) + 1;
+      }
+
+        if (saved.statsState) {
+        statsState.completedCycles = saved.statsState.completedCycles || [];
+      }
+
+      if (saved.state) {
+        state.currentScale = saved.state.currentScale || state.currentScale;
+        state.currentPhase = saved.state.currentPhase || state.currentPhase;
+        state.remainingSeconds = saved.state.remainingSeconds ?? state.remainingSeconds;
+        state.totalSeconds = saved.state.totalSeconds ?? state.totalSeconds;
+        state.cycleCount = saved.state.cycleCount ?? state.cycleCount;
+        state.isRunning = Boolean(saved.state.isRunning);
+        state.isPaused = Boolean(saved.state.isPaused);
+        const activeTab = saved.state.activeTab || 'tasks';
+        switchTab(activeTab);
+      }
+    }
+
+    function restoreTaskFilterUI() {
+      const filterInputs = document.querySelectorAll('[data-filter-type]');
+      filterInputs.forEach((input) => {
+        const type = input.dataset.filterType;
+        const value = input.value;
+        if (taskState.filters[type]) {
+          input.checked = taskState.filters[type].has(value);
+        }
+      });
+    }
+
+    const notesState = {
+      recoverySeconds: 10 * 60,
+      recoveryRunning: false,
+      recoveryPaused: false
+    };
+
+    const taskState = {
+      nextId: 1,
+      tasks: [],
+      editingId: null,
+      filters: {
+        status: new Set(),
+        priority: new Set(),
+        due: new Set(),
+        tags: new Set()
+      }
+    };
+
+    const mindmapState = {
+      nextId: 1,
+      cards: [],
+      activeDrag: null,
+      activeResize: null,
+      pointerId: null,
+      dragOffsetX: 0,
+      dragOffsetY: 0,
+      startX: 0,
+      startY: 0,
+      startWidth: 0,
+      startHeight: 0
+    };
+
+    const statusLabels = {
+      todo: 'A Fazer',
+      doing: 'Em Andamento',
+      done: 'Concluída',
+      cancelled: 'Cancelada'
+    };
+
+    const statusIcons = {
+      todo: '📝',
+      doing: '⏳',
+      done: '✅',
+      cancelled: '✖'
+    };
+
+    const priorityLabels = {
+      high: 'Alta',
+      moderate: 'Moderada',
+      low: 'Baixa',
+      paused: 'Pausada'
+    };
+
+    const priorityColors = {
+      high: 'var(--terracota-suave)',
+      moderate: '#D7B740',
+      low: 'var(--petroleo)',
+      paused: '#8D8A86'
+    };
+
+    function getNextPhase() {
+      if (state.currentPhase === 'focus') return 'short-break';
+      if (state.currentPhase === 'short-break') {
+        return state.cycleCount + 1 >= 4 ? 'long-break' : 'focus';
+      }
+      return 'focus';
+    }
+
+    function clearAutoAdvance() {
+      if (nextAutoAdvanceTimeout) {
+        clearTimeout(nextAutoAdvanceTimeout);
+        nextAutoAdvanceTimeout = null;
+      }
+    }
+
+    function downloadTextFile(filename, content) {
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function formatRecoveryTime(seconds) {
+      const minutes = String(Math.floor(seconds / 60)).padStart(2, '0');
+      const secs = String(seconds % 60).padStart(2, '0');
+      return `${minutes}:${secs}`;
+    }
+
+    function updateRecoveryTimer() {
+      recoveryTimerDisplay.textContent = formatRecoveryTime(notesState.recoverySeconds);
+      recoveryToggle.textContent = notesState.recoveryRunning ? 'Pausar' : 'Iniciar';
+    }
+
+    function toggleRecovery() {
+      if (notesState.recoveryRunning) {
+        notesState.recoveryRunning = false;
+        notesState.recoveryPaused = true;
+      } else {
+        notesState.recoveryRunning = true;
+        notesState.recoveryPaused = false;
+      }
+      updateRecoveryTimer();
+    }
+
+    function tickRecovery() {
+      if (!notesState.recoveryRunning || notesState.recoveryPaused) return;
+      if (notesState.recoverySeconds <= 0) {
+        notesState.recoveryRunning = false;
+        notesState.recoveryPaused = false;
+        return;
+      }
+      notesState.recoverySeconds -= 1;
+      updateRecoveryTimer();
+    }
+
+    function saveNote(event) {
+      event.preventDefault();
+      const title = noteTitleInput.value.trim();
+      const body = noteBodyInput.value.trim();
+      const content = title ? `${title}\n\n${body}` : body;
+      const filename = title ? `${title}.txt` : 'anotacao.txt';
+      downloadTextFile(filename, content);
+      saveAppState();
+    }
+
+    function applyTheme(theme) {
+      settings.theme = theme;
+      document.documentElement.classList.toggle('theme-dark', theme === 'dark');
+    }
+
+    function createMindmapCard() {
+      const card = {
+        id: mindmapState.nextId++,
+        title: 'Novo cartão',
+        content: 'Digite algo aqui...',
+        x: mindmapCanvas.scrollLeft + 24,
+        y: mindmapCanvas.scrollTop + 24,
+        width: 220,
+        height: 160
+      };
+      mindmapState.cards.push(card);
+      renderMindmapCards();
+      saveAppState();
+    }
+
+    function renderMindmapCards() {
+      const empty = mindmapCanvas.querySelector('.mindmap-empty');
+      mindmapCanvas.querySelectorAll('.mindmap-card').forEach((node) => node.remove());
+      mindmapState.cards.forEach((card) => {
+        const cardEl = document.createElement('article');
+        cardEl.className = 'mindmap-card';
+        cardEl.dataset.id = card.id;
+        cardEl.style.left = `${card.x}px`;
+        cardEl.style.top = `${card.y}px`;
+        cardEl.style.width = `${card.width}px`;
+        cardEl.style.height = `${card.height}px`;
+        cardEl.innerHTML = `
+          <input type="text" class="card-title" value="${card.title}" aria-label="Título do cartão" />
+          <textarea class="card-body" aria-label="Conteúdo do cartão">${card.content}</textarea>
+          <div class="card-resize-handle" aria-label="Redimensionar">↘</div>
+        `;
+        mindmapCanvas.appendChild(cardEl);
+
+        const titleInput = cardEl.querySelector('.card-title');
+        const bodyTextarea = cardEl.querySelector('.card-body');
+        const resizeHandle = cardEl.querySelector('.card-resize-handle');
+
+        titleInput.addEventListener('input', (event) => {
+          card.title = event.target.value;
+          saveAppState();
+        });
+
+        bodyTextarea.addEventListener('input', (event) => {
+          card.content = event.target.value;
+          saveAppState();
+        });
+
+        cardEl.addEventListener('pointerdown', (event) => {
+          if (event.target.closest('.card-resize-handle')) return;
+          if (event.target.closest('input, textarea')) return;
+          mindmapState.activeDrag = { card, element: cardEl };
+          mindmapState.pointerId = event.pointerId;
+          const rect = cardEl.getBoundingClientRect();
+          mindmapState.dragOffsetX = event.clientX - rect.left;
+          mindmapState.dragOffsetY = event.clientY - rect.top;
+          cardEl.setPointerCapture(event.pointerId);
+          event.preventDefault();
+        });
+
+        resizeHandle.addEventListener('pointerdown', (event) => {
+          mindmapState.activeResize = { card, element: cardEl };
+          mindmapState.pointerId = event.pointerId;
+          mindmapState.startX = event.clientX;
+          mindmapState.startY = event.clientY;
+          mindmapState.startWidth = card.width;
+          mindmapState.startHeight = card.height;
+          resizeHandle.setPointerCapture(event.pointerId);
+          event.stopPropagation();
+          event.preventDefault();
+        });
+      });
+      empty.style.display = mindmapState.cards.length ? 'none' : 'block';
+    }
+
+    function updateMindmapCardElement(cardState) {
+      if (!cardState.element) return;
+      cardState.element.style.left = `${cardState.card.x}px`;
+      cardState.element.style.top = `${cardState.card.y}px`;
+      cardState.element.style.width = `${cardState.card.width}px`;
+      cardState.element.style.height = `${cardState.card.height}px`;
+    }
+
+    function handleMindmapPointerMove(event) {
+      if (mindmapState.pointerId !== event.pointerId) return;
+      const canvasRect = mindmapCanvas.getBoundingClientRect();
+      if (mindmapState.activeDrag) {
+        const current = mindmapState.activeDrag;
+        const newX = event.clientX - canvasRect.left + mindmapCanvas.scrollLeft - mindmapState.dragOffsetX;
+        const newY = event.clientY - canvasRect.top + mindmapCanvas.scrollTop - mindmapState.dragOffsetY;
+        current.card.x = Math.max(0, newX);
+        current.card.y = Math.max(0, newY);
+        current.element.style.left = `${current.card.x}px`;
+        current.element.style.top = `${current.card.y}px`;
+      }
+      if (mindmapState.activeResize) {
+        const current = mindmapState.activeResize;
+        const deltaX = event.clientX - mindmapState.startX;
+        const deltaY = event.clientY - mindmapState.startY;
+        current.card.width = Math.max(180, mindmapState.startWidth + deltaX);
+        current.card.height = Math.max(120, mindmapState.startHeight + deltaY);
+        current.element.style.width = `${current.card.width}px`;
+        current.element.style.height = `${current.card.height}px`;
+      }
+    }
+
+    function handleMindmapPointerUp(event) {
+      if (mindmapState.pointerId !== event.pointerId) return;
+      if (mindmapState.activeDrag) {
+        mindmapState.activeDrag.element.releasePointerCapture(event.pointerId);
+      }
+      if (mindmapState.activeResize) {
+        mindmapState.activeResize.element.releasePointerCapture(event.pointerId);
+      }
+      mindmapState.activeDrag = null;
+      mindmapState.activeResize = null;
+      mindmapState.pointerId = null;
+      saveAppState();
+    }
+
+    function createGain(volume) {
+      const gain = audioContext.createGain();
+      gain.gain.value = Math.max(0, Math.min(1, volume));
+      gain.connect(audioContext.destination);
+      return gain;
+    }
+
+    function playDigital(now, volume) {
+      const gain = createGain(volume * 0.25);
+      const makeBeep = (delay) => {
+        const osc = audioContext.createOscillator();
+        osc.type = 'square';
+        osc.frequency.value = 800;
+        osc.connect(gain);
+        osc.start(now + delay);
+        osc.stop(now + delay + 0.12);
+      };
+      makeBeep(0);
+      makeBeep(0.22);
+      return 450;
+    }
+
+    function playTremolo(now, volume) {
+      const gain = createGain(0);
+      const carrier = audioContext.createOscillator();
+      const lfo = audioContext.createOscillator();
+      const lfoGain = audioContext.createGain();
+
+      carrier.type = 'sine';
+      carrier.frequency.value = 520;
+      lfo.type = 'sine';
+      lfo.frequency.value = 7.5;
+      lfoGain.gain.value = 0.24;
+
+      lfo.connect(lfoGain).connect(gain.gain);
+      carrier.connect(gain);
+      gain.connect(audioContext.destination);
+      gain.gain.setValueAtTime(0.18 * volume, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.1);
+
+      carrier.start(now);
+      lfo.start(now);
+      carrier.stop(now + 1.1);
+      lfo.stop(now + 1.1);
+      return 1100;
+    }
+
+    function playSino(now, volume) {
+      const base = 440;
+      const gain = createGain(0);
+      const partials = [1, 2, 3];
+      partials.forEach((multiplier, index) => {
+        const osc = audioContext.createOscillator();
+        const level = [0.4, 0.22, 0.14][index];
+        osc.type = 'sine';
+        osc.frequency.value = base * multiplier;
+        const partialGain = audioContext.createGain();
+        partialGain.gain.value = level * volume;
+        osc.connect(partialGain).connect(gain);
+        osc.start(now);
+        osc.stop(now + 1.8);
+      });
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.18 * volume, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
+      return 1800;
+    }
+
+    function playAlarmSound() {
+      const now = audioContext.currentTime;
+      audioContext.resume();
+      if (settings.alarmSound === 'digital') return playDigital(now, settings.volume);
+      if (settings.alarmSound === 'tremolo') return playTremolo(now, settings.volume);
+      return playSino(now, settings.volume);
+    }
+
+    function handlePhaseCompletion() {
+      const nextPhase = getNextPhase();
+      if (state.currentPhase === 'focus') {
+        const today = new Date().toISOString().slice(0, 10);
+        statsState.completedCycles.push(today);
+      }
+      const shouldAutoStart = nextPhase === 'focus' ? settings.autoFocus : settings.autoPause;
+      const soundDuration = playAlarmSound();
+      if (shouldAutoStart) {
+        clearAutoAdvance();
+        nextAutoAdvanceTimeout = setTimeout(() => {
+          advancePhase(true);
+          nextAutoAdvanceTimeout = null;
+        }, soundDuration + 180);
+      }
+      saveAppState();
+    }
+
+    const scales = {
+      A: {
+        label: 'Escala A: Foco Denso',
+        sessionName: 'Sessão de Imersão',
+        focusTime: 20 * 60,
+        shortBreak: 3 * 60,
+        longBreak: 15 * 60,
+        range: null,
+        color: 'var(--petroleo)'
+      },
+      B: {
+        label: 'Escala B: Foco Moderado',
+        sessionName: 'Sessão de Foco Moderado',
+        focusTime: 25 * 60,
+        shortBreak: 5 * 60,
+        longBreak: 20 * 60,
+        range: { min: 25, max: 35 },
+        color: 'var(--petroleo)'
+      },
+      C: {
+        label: 'Escala C: Foco Leve',
+        sessionName: 'Sessão de Foco Leve',
+        focusTime: 40 * 60,
+        shortBreak: 5 * 60,
+        longBreak: 30 * 60,
+        range: { min: 40, max: 45 },
+        color: 'var(--petroleo)'
+      }
+    };
+
+    const state = {
+      currentScale: 'A',
+      currentPhase: 'focus',
+      isRunning: false,
+      isPaused: false,
+      phaseCompleted: false,
+      cycleCount: 0,
+      remainingSeconds: scales.A.focusTime,
+      totalSeconds: scales.A.focusTime
+    };
+
+    function formatTime(seconds) {
+      const minutes = String(Math.floor(seconds / 60)).padStart(2, '0');
+      const secondsPart = String(seconds % 60).padStart(2, '0');
+      return `${minutes}:${secondsPart}`;
+    }
+
+    function updateRing() {
+      const progress = state.totalSeconds ? state.remainingSeconds / state.totalSeconds : 0;
+      const offset = CIRCUMFERENCE * (1 - progress);
+      ringCircle.style.strokeDashoffset = offset.toFixed(1);
+      ringCircle.setAttribute('stroke', state.currentPhase === 'long-break' ? 'var(--vermelho-pausa)' : scales[state.currentScale].color);
+    }
+
+    function updateUI() {
+      const scale = scales[state.currentScale];
+      scaleButton.textContent = scale.label;
+      sessionLabel.textContent = state.currentPhase === 'long-break' ? 'Pausa Longa' : scale.sessionName;
+      timerDisplay.textContent = formatTime(state.remainingSeconds);
+      cycleCountEl.textContent = state.cycleCount;
+      updateRing();
+      document.querySelector('.hero-circle').classList.toggle('long-break', state.currentPhase === 'long-break');
+
+      if (scale.range && state.currentPhase === 'focus') {
+        focusRange.classList.remove('hidden');
+        focusDurationInput.min = scale.range.min;
+        focusDurationInput.max = scale.range.max;
+        focusDurationInput.value = state.totalSeconds / 60;
+        focusValue.textContent = String(state.totalSeconds / 60);
+      } else {
+        focusRange.classList.add('hidden');
+      }
+
+      if (state.phaseCompleted) {
+        startButton.textContent = 'Avançar';
+        startButton.disabled = false;
+      } else if (state.isRunning) {
+        startButton.textContent = 'Pausar';
+        startButton.disabled = false;
+      } else if (state.isPaused) {
+        startButton.textContent = 'Retomar';
+        startButton.disabled = false;
+      } else {
+        startButton.textContent = 'Iniciar';
+        startButton.disabled = false;
+      }
+      updateStatsDisplay();
+    }
+
+    function resetToFocus() {
+      const scale = scales[state.currentScale];
+      state.currentPhase = 'focus';
+      state.phaseCompleted = false;
+      state.isRunning = false;
+      state.isPaused = false;
+      state.totalSeconds = scale.focusTime;
+      state.remainingSeconds = scale.focusTime;
+      if (scale.range) {
+        focusDurationInput.value = scale.focusTime / 60;
+        focusValue.textContent = String(scale.focusTime / 60);
+      }
+    }
+
+    function updateStatsDisplay() {
+      const today = new Date();
+      const dayKey = today.toISOString().slice(0, 10);
+      const weekStart = new Date(today);
+      weekStart.setDate(today.getDate() - today.getDay());
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      const todayCount = statsState.completedCycles.filter((date) => date === dayKey).length;
+      const weekCount = statsState.completedCycles.filter((date) => {
+        const current = new Date(date);
+        return current >= weekStart && current <= weekEnd;
+      }).length;
+      document.getElementById('today-cycles').textContent = String(todayCount);
+      document.getElementById('week-cycles').textContent = String(weekCount);
+    }
+
+    function getTaskDueText(dateString) {
+      if (!dateString) return '';
+      const [year, month, day] = dateString.split('-');
+      return `${day}/${month}/${year}`;
+    }
+
+    function getTaskDateFromText(value) {
+      const match = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (!match) return '';
+      const [, day, month, year] = match;
+      const date = new Date(`${year}-${month}-${day}`);
+      if (Number.isNaN(date.getTime())) return '';
+      return `${year}-${month}-${day}`;
+    }
+
+    function renderTagFilters() {
+      const allTags = new Set();
+      taskState.tasks.forEach((task) => {
+        task.tags.forEach((tag) => allTags.add(tag));
+      });
+      filterTagsContainer.innerHTML = '';
+      if (!allTags.size) {
+        filterTagsContainer.textContent = 'Nenhuma tag disponível';
+        return;
+      }
+      allTags.forEach((tag) => {
+        const label = document.createElement('label');
+        label.innerHTML = `\n          <input type="checkbox" value="${tag}" data-filter-type="tags" /> ${tag}`;
+        filterTagsContainer.appendChild(label);
+      });
+    }
+
+    function getFilteredTasks() {
+      return taskState.tasks.filter((task) => {
+        if (taskState.filters.status.size && !taskState.filters.status.has(task.status)) return false;
+        if (taskState.filters.priority.size && !taskState.filters.priority.has(task.priority)) return false;
+        if (taskState.filters.due.size) {
+          const dueDate = task.dueDate;
+          const now = new Date();
+          const todayKey = now.toISOString().slice(0, 10);
+          const weekDay = now.getDay();
+          const weekStart = new Date(now);
+          weekStart.setDate(now.getDate() - weekDay);
+          const weekEnd = new Date(weekStart);
+          weekEnd.setDate(weekStart.getDate() + 6);
+          const isToday = dueDate === todayKey;
+          let isWeek = false;
+          if (dueDate) {
+            const due = new Date(dueDate);
+            isWeek = due >= weekStart && due <= weekEnd;
+          }
+          const hasNoDate = !dueDate;
+          const dueChecks = [];
+          if (taskState.filters.due.has('today')) dueChecks.push(isToday);
+          if (taskState.filters.due.has('week')) dueChecks.push(isWeek);
+          if (taskState.filters.due.has('no-date')) dueChecks.push(hasNoDate);
+          if (!dueChecks.some(Boolean)) return false;
+        }
+        if (taskState.filters.tags.size) {
+          if (!task.tags.length) return false;
+          const hasAllTags = [...taskState.filters.tags].every((tag) => task.tags.includes(tag));
+          if (!hasAllTags) return false;
+        }
+        return true;
+      });
+    }
+
+    function renderTasks() {
+      const visibleTasks = getFilteredTasks();
+      taskList.innerHTML = '';
+      if (!visibleTasks.length) {
+        taskEmpty.style.display = 'block';
+        return;
+      }
+      taskEmpty.style.display = 'none';
+      visibleTasks.forEach((task) => {
+        const li = document.createElement('li');
+        li.className = 'task-item';
+        li.dataset.id = task.id;
+        li.innerHTML = `
+          <div class="task-item-top">
+            <div class="task-item-title">${task.title}</div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <button class="task-template" type="button" data-id="${task.id}" aria-label="Usar como template">⟳</button>
+              <button class="task-delete" type="button" aria-label="Excluir tarefa">×</button>
+            </div>
+          </div>
+          <div class="task-meta">
+            <span class="task-pill task-status">${statusIcons[task.status]} ${statusLabels[task.status]}</span>
+            <span class="task-pill task-priority" style="background:${priorityColors[task.priority]};">${priorityLabels[task.priority]}</span>
+          </div>
+          <div class="task-specs">
+            <div>Prazo: ${task.dueText || 'Sem prazo'}</div>
+            <div class="task-tag-list">${task.tags.map((tag) => `<span class="task-tag">${tag}</span>`).join('')}</div>
+          </div>
+        `;
+        taskList.appendChild(li);
+      });
+    }
+
+    function openTaskForm(task = null) {
+      taskState.editingId = task ? task.id : null;
+      taskForm.classList.remove('hidden');
+      if (task) {
+        taskNameInput.value = task.title;
+        taskStatusInput.value = task.status;
+        taskPriorityInput.value = task.priority;
+        taskDateInput.value = task.dueDate;
+        taskDateText.value = task.dueText;
+        taskTagsInput.value = task.tags.join(', ');
+      } else {
+        taskForm.reset();
+        taskDateText.value = '';
+      }
+      taskNameInput.focus();
+    }
+
+    function closeTaskForm() {
+      taskForm.classList.add('hidden');
+      taskState.editingId = null;
+      taskForm.reset();
+      taskDateText.value = '';
+    }
+
+    function saveTask(event) {
+      event.preventDefault();
+      const title = taskNameInput.value.trim();
+      if (!title) return;
+      const status = taskStatusInput.value;
+      const priority = taskPriorityInput.value;
+      let dueDate = taskDateInput.value;
+      const dueText = taskDateText.value.trim();
+      const parsedDate = getTaskDateFromText(dueText);
+      if (!dueDate && parsedDate) dueDate = parsedDate;
+      const tags = taskTagsInput.value.split(',').map((tag) => tag.trim()).filter(Boolean);
+      const taskData = {
+        title,
+        status,
+        priority,
+        dueDate: dueDate || '',
+        dueText: dueDate ? getTaskDueText(dueDate) : dueText,
+        tags
+      };
+      if (taskState.editingId) {
+        const index = taskState.tasks.findIndex((task) => task.id === taskState.editingId);
+        if (index !== -1) taskState.tasks[index] = { ...taskState.tasks[index], ...taskData };
+      } else {
+        taskState.tasks.unshift({ id: taskState.nextId++, ...taskData });
+      }
+      renderTagFilters();
+      renderTasks();
+      saveAppState();
+      closeTaskForm();
+    }
+
+    function applyTaskTemplate(id) {
+      const base = taskState.tasks.find((task) => task.id === id);
+      if (!base) return;
+      const copy = {
+        id: taskState.nextId++,
+        title: `${base.title} (template)`,
+        status: base.status,
+        priority: base.priority,
+        dueDate: base.dueDate,
+        dueText: base.dueText,
+        tags: [...base.tags]
+      };
+      taskState.tasks.unshift(copy);
+      renderTagFilters();
+      renderTasks();
+      saveAppState();
+    }
+
+    function deleteTask(id) {
+      taskState.tasks = taskState.tasks.filter((task) => task.id !== id);
+      renderTagFilters();
+      renderTasks();
+      saveAppState();
+    }
+
+    function handleTaskListClick(event) {
+      const item = event.target.closest('.task-item');
+      if (!item) return;
+      const id = Number(item.dataset.id);
+      if (event.target.closest('.task-delete')) {
+        deleteTask(id);
+        return;
+      }
+      if (event.target.closest('.task-template')) {
+        applyTaskTemplate(id);
+        return;
+      }
+      const task = taskState.tasks.find((task) => task.id === id);
+      if (task) openTaskForm(task);
+    }
+
+    function handleFilterChange(event) {
+      const { filterType, value, checked } = event.target.dataset ? { filterType: event.target.dataset.filterType, value: event.target.value, checked: event.target.checked } : {};
+      if (!filterType) return;
+      const set = taskState.filters[filterType];
+      if (checked) set.add(value);
+      else set.delete(value);
+      renderTasks();
+      saveAppState();
+    }
+
+    function toggleFilters() {
+      const open = !taskFilters.classList.contains('hidden');
+      taskFilters.classList.toggle('hidden', !open);
+      taskGear.setAttribute('aria-expanded', String(open));
+    }
+
+    function switchTab(tabKey) {
+      tabButtons.forEach((button) => {
+        const active = button.dataset.tab === tabKey;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-selected', String(active));
+      });
+      tabPanels.forEach((panel) => {
+        panel.classList.toggle('active', panel.id === `panel-${tabKey}`);
+      });
+      saveAppState();
+    }
+
+    function selectScale(scaleKey) {
+      state.currentScale = scaleKey;
+      resetToFocus();
+      scaleMenu.classList.remove('open');
+      scaleButton.setAttribute('aria-expanded', 'false');
+      updateUI();
+      saveAppState();
+    }
+
+    function advancePhase(autoStart = false) {
+      clearAutoAdvance();
+      const scale = scales[state.currentScale];
+      if (state.currentPhase === 'focus') {
+        state.currentPhase = 'short-break';
+        state.totalSeconds = scale.shortBreak;
+        state.remainingSeconds = scale.shortBreak;
+      } else if (state.currentPhase === 'short-break') {
+        state.cycleCount += 1;
+        if (state.cycleCount >= 4) {
+          state.currentPhase = 'long-break';
+          state.totalSeconds = scale.longBreak;
+          state.remainingSeconds = scale.longBreak;
+        } else {
+          state.currentPhase = 'focus';
+          state.totalSeconds = scale.focusTime;
+          state.remainingSeconds = scale.focusTime;
+        }
+      } else if (state.currentPhase === 'long-break') {
+        state.cycleCount = 0;
+        state.currentPhase = 'focus';
+        state.totalSeconds = scale.focusTime;
+        state.remainingSeconds = scale.focusTime;
+      }
+      state.phaseCompleted = false;
+      state.isRunning = Boolean(autoStart);
+      state.isPaused = false;
+      updateUI();
+      saveAppState();
+    }
+
+    function tick() {
+      if (!state.isRunning || state.isPaused) return;
+      if (state.remainingSeconds <= 0) return;
+      state.remainingSeconds -= 1;
+      if (state.remainingSeconds <= 0) {
+        state.remainingSeconds = 0;
+        state.isRunning = false;
+        state.phaseCompleted = true;
+        updateUI();
+        handlePhaseCompletion();
+        return;
+      }
+      updateUI();
+    }
+
+    function setFocusDuration(value) {
+      const scale = scales[state.currentScale];
+      const minutes = Number(value);
+      state.totalSeconds = minutes * 60;
+      state.remainingSeconds = state.totalSeconds;
+      focusValue.textContent = String(minutes);
+      updateUI();
+      saveAppState();
+    }
+
+    function handleStartButton() {
+      if (state.phaseCompleted) {
+        const nextPhase = getNextPhase();
+        const shouldAutoStart = nextPhase === 'focus' ? settings.autoFocus : settings.autoPause;
+        advancePhase(shouldAutoStart);
+        return;
+      }
+
+      if (!state.isRunning) {
+        state.isRunning = true;
+        state.isPaused = false;
+      } else {
+        state.isPaused = !state.isPaused;
+      }
+      updateUI();
+      saveAppState();
+    }
+
+    function setupMenu() {
+      scaleButton.addEventListener('click', () => {
+        const open = !scaleMenu.classList.contains('open');
+        scaleMenu.classList.toggle('open', open);
+        scaleButton.setAttribute('aria-expanded', String(open));
+      });
+
+      scaleOptions.forEach((option) => {
+        option.addEventListener('click', () => selectScale(option.dataset.scale));
+      });
+
+      document.addEventListener('click', (event) => {
+        if (!scaleMenu.contains(event.target) && event.target !== scaleButton) {
+          scaleMenu.classList.remove('open');
+          scaleButton.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+
+    function togglePanel(panel, button) {
+      const isClosed = panel.classList.contains('closed');
+      panel.classList.toggle('closed', !isClosed);
+      panel.classList.toggle('open', isClosed);
+      button.setAttribute('aria-expanded', String(isClosed));
+      button.innerHTML = isClosed ? (panel.classList.contains('panel--left') ? '&lt;' : '&gt;') : (panel.classList.contains('panel--left') ? '&gt;' : '&lt;');
+    }
+
+    function toggleDrawer() {
+      const isOpen = drawer.classList.toggle('open');
+      document.body.classList.toggle('drawer-open', isOpen);
+      gear.setAttribute('aria-expanded', String(isOpen));
+      drawer.setAttribute('aria-hidden', String(!isOpen));
+    }
+
+    leftToggle.addEventListener('click', () => togglePanel(leftPanel, leftToggle));
+    rightToggle.addEventListener('click', () => togglePanel(rightPanel, rightToggle));
+    gear.addEventListener('click', toggleDrawer);
+    taskGear.addEventListener('click', toggleFilters);
+    addTaskButton.addEventListener('click', () => openTaskForm());
+    taskForm.addEventListener('submit', saveTask);
+    document.getElementById('cancel-task').addEventListener('click', closeTaskForm);
+    taskList.addEventListener('click', handleTaskListClick);
+    taskFilters.addEventListener('change', handleFilterChange);
+    taskDateInput.addEventListener('change', () => {
+      taskDateText.value = getTaskDueText(taskDateInput.value);
+    });
+    taskDateText.addEventListener('input', () => {
+      const nextDate = getTaskDateFromText(taskDateText.value);
+      taskDateInput.value = nextDate;
+    });
+    tabButtons.forEach((button) => {
+      button.addEventListener('click', () => switchTab(button.dataset.tab));
+    });
+    notesForm.addEventListener('submit', saveNote);
+    recoveryToggle.addEventListener('click', toggleRecovery);
+    addCardButton.addEventListener('click', createMindmapCard);
+    document.addEventListener('pointermove', handleMindmapPointerMove);
+    document.addEventListener('pointerup', handleMindmapPointerUp);
+    document.addEventListener('pointercancel', handleMindmapPointerUp);
+    startButton.addEventListener('click', handleStartButton);
+    focusDurationInput.addEventListener('input', (event) => setFocusDuration(event.target.value));
+    autoFocusToggle.addEventListener('change', (event) => {
+      settings.autoFocus = event.target.checked;
+      saveAppState();
+    });
+    autoPauseToggle.addEventListener('change', (event) => {
+      settings.autoPause = event.target.checked;
+      saveAppState();
+    });
+    soundSelect.addEventListener('change', (event) => {
+      settings.alarmSound = event.target.value;
+      saveAppState();
+    });
+    volumeInput.addEventListener('input', (event) => {
+      const value = Number(event.target.value) / 100;
+      settings.volume = value;
+      volumeValue.textContent = `${event.target.value}%`;
+      saveAppState();
+    });
+    themeSelect.addEventListener('change', (event) => {
+      applyTheme(event.target.value);
+      saveAppState();
+    });
+    noteTitleInput.addEventListener('input', saveAppState);
+    noteBodyInput.addEventListener('input', saveAppState);
+
+    async function initializeApp() {
+      await loadAppState();
+      applyTheme(settings.theme);
+      setupMenu();
+      renderTagFilters();
+      restoreTaskFilterUI();
+      renderTasks();
+      renderMindmapCards();
+      updateUI();
+      setInterval(tick, 1000);
+    }
+
+    initializeApp();
+
+    function handleGlobalKeydown(event) {
+      const isSpace = event.code === 'Space' || event.key === ' ';
+      if (!isSpace) return;
+      const active = document.activeElement;
+      if (active && (active.matches('input, textarea, select') || active.isContentEditable)) return;
+      event.preventDefault();
+      handleStartButton();
+    }
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        if (drawer.classList.contains('open')) toggleDrawer();
+        scaleMenu.classList.remove('open');
+        scaleButton.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    document.addEventListener('keydown', handleGlobalKeydown);
+  </script>
+</body>
+</html>
