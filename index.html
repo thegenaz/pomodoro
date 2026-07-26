@@ -2416,7 +2416,7 @@
       panel.classList.toggle('closed', !isClosed);
       panel.classList.toggle('open', isClosed);
       button.setAttribute('aria-expanded', String(isClosed));
-      button.innerHTML = isClosed ? (panel.classList.contains('panel--left') ? '&lt;' : '&gt;') : (panel.classList.contains('panel--left') ? '&gt;' : '&lt;');
+      button.innerHTML = isClosed ? '&lt;' : '&gt;';
     }
 
     function toggleDrawer() {
