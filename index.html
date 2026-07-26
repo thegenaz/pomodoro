@@ -51,7 +51,7 @@
 
     .app-shell {
       display: grid;
-      grid-template-columns: minmax(68px, 280px) minmax(320px, 1fr) minmax(68px, 280px);
+      grid-template-columns: minmax(68px, 280px) minmax(320px, 1fr);
       gap: 20px;
       width: min(1220px, 100%);
       min-height: calc(100vh - 48px);
@@ -578,12 +578,6 @@
       border-bottom-right-radius: 22px;
     }
 
-    .panel--right .toggle-handle {
-      left: -22px;
-      border-top-left-radius: 22px;
-      border-bottom-left-radius: 22px;
-    }
-
     .panel--left.closed {
       transform: translateX(-90%);
       opacity: 0.98;
@@ -594,17 +588,6 @@
       transform: translateY(-50%) rotate(0deg);
     }
 
-    .panel--right.closed {
-      transform: translateX(90%);
-      opacity: 0.98;
-    }
-
-    .panel--right.closed .toggle-handle {
-      left: -22px;
-      transform: translateY(-50%) rotate(0deg);
-    }
-
-    .panel--right.open .toggle-handle,
     .panel--left.open .toggle-handle {
       pointer-events: auto;
     }
@@ -919,8 +902,8 @@
     }
 
     .drawer-open .app-shell {
-      transform: translateX(-120px);
-      transition: transform var(--transition);
+      transform: none;
+      transition: none;
     }
 
     .drawer h2 {
@@ -1096,8 +1079,7 @@
         min-height: auto;
       }
 
-      .panel--left,
-      .panel--right {
+      .panel--left {
         position: fixed;
         top: 0;
         bottom: 0;
@@ -1110,14 +1092,6 @@
       }
 
       .panel--left.open {
-        transform: translateX(0);
-      }
-
-      .panel--right {
-        transform: translateX(100%);
-      }
-
-      .panel--right.open {
         transform: translateX(0);
       }
 
@@ -1134,10 +1108,6 @@
 
       .panel--left .toggle-handle {
         right: 16px;
-      }
-
-      .panel--right .toggle-handle {
-        left: 16px;
       }
 
       .center-panel {
@@ -1395,16 +1365,6 @@
         <button class="start-button" type="button" id="start-button">Iniciar</button>
       </div>
     </main>
-
-    <section class="panel panel--right closed" id="right-panel" aria-label="Configurações rápidas">
-      <button class="toggle-handle" type="button" aria-expanded="false" aria-controls="right-panel" aria-label="Abrir Configurações rápidas">
-        &lt;
-      </button>
-      <div class="panel__content">
-        <h2>Configurações</h2>
-        <p>Use o ícone de engrenagem para abrir as configurações completas da interface.</p>
-      </div>
-    </section>
   </div>
 
   <aside class="drawer" id="settings-drawer" aria-hidden="true">
@@ -1460,11 +1420,9 @@
 
   <script>
     const leftPanel = document.querySelector('.panel--left');
-    const rightPanel = document.querySelector('.panel--right');
     const leftToggle = leftPanel.querySelector('.toggle-handle');
-    const rightToggle = rightPanel.querySelector('.toggle-handle');
     const gear = document.querySelector('.gear-trigger');
-    const drawer = document.querySelector('.drawer');
+    const drawer = document.getElementById('settings-drawer');
     const taskGear = document.getElementById('tasks-gear');
     const taskFilters = document.getElementById('task-filters');
     const addTaskButton = document.getElementById('add-task-button');
@@ -2469,7 +2427,6 @@
     }
 
     leftToggle.addEventListener('click', () => togglePanel(leftPanel, leftToggle));
-    rightToggle.addEventListener('click', () => togglePanel(rightPanel, rightToggle));
     gear.addEventListener('click', toggleDrawer);
     taskGear.addEventListener('click', toggleFilters);
     addTaskButton.addEventListener('click', () => openTaskForm());
