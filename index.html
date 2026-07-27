@@ -291,12 +291,15 @@
             max-width: 220px;
             align-items: center;
             justify-content: center;
+            align-self: flex-start;
         }
         .inline-confirm-wrap {
             display: inline-flex;
-            align-items: center;
+            flex-direction: column;
+            align-items: flex-start;
             justify-content: center;
             min-height: 44px;
+            gap: 8px;
         }
         .confirm-panel .confirm-text {
             font-size: 1rem;
@@ -2075,24 +2078,20 @@
 
         function showPauseConfirmation() {
             hideResetConfirmation();
-            btnPauseMode.classList.add('hidden');
             pauseConfirmation.classList.add('show');
         }
 
         function hidePauseConfirmation() {
             pauseConfirmation.classList.remove('show');
-            btnPauseMode.classList.remove('hidden');
         }
 
         function showResetConfirmation() {
             hidePauseConfirmation();
-            btnReset.classList.add('hidden');
             resetConfirmation.classList.add('show');
         }
 
         function hideResetConfirmation() {
             resetConfirmation.classList.remove('show');
-            btnReset.classList.remove('hidden');
         }
 
         btnReset.addEventListener('click', () => {
