@@ -20,6 +20,25 @@
             --amarelo-suave: #D9C97A;
             --cinza: #8c8c8c;
             --panel-width: 340px;
+            --panel-bg: #ffffff;
+            --surface: #ffffff;
+            --surface-2: #f6f2ea;
+            --text-muted: #6b7280;
+        }
+
+        body.dark-mode {
+            --tinta: #EAEAEA;
+            --pergaminho: #121212;
+            --petroleo: #2A9D8E;
+            --petroleo-escuro: #21867A;
+            --terracota-suave: #D98C63;
+            --vermelho-pausa: #E06A5A;
+            --amarelo-suave: #E2C96E;
+            --cinza: #A8A8A8;
+            --panel-bg: #1E1E1E;
+            --surface: #1E1E1E;
+            --surface-2: #2A2A2A;
+            --text-muted: #CFCFCF;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,11 +50,98 @@
             display: flex;
             height: 100vh;
             overflow: hidden;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .left-utility-menu {
+            position: fixed;
+            left: 72px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 22;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        body.left-open .left-utility-menu {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-50%) translateX(-120%);
+        }
+
+        .utility-btn {
+            width: 48px;
+            height: 48px;
+            border: none;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: var(--surface);
+            color: var(--petroleo-escuro);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            cursor: pointer;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        .utility-btn:hover {
+            transform: translateY(-2px);
+            background: var(--surface-2);
+        }
+
+        .utility-btn svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .ai-assistant-panel {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            width: min(320px, calc(100vw - 32px));
+            padding: 1rem 1rem 1.1rem;
+            border-radius: 16px;
+            background: var(--surface);
+            color: var(--tinta);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+        }
+
+        .ai-assistant-panel[hidden] {
+            display: none !important;
+        }
+
+        .ai-assistant-panel__header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            font-family: 'Lora', serif;
+            font-weight: 600;
+            color: var(--petroleo-escuro);
+        }
+
+        .ai-assistant-panel__close {
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+
+        .ai-assistant-panel p {
+            line-height: 1.5;
+            font-size: 0.95rem;
+            color: var(--text-muted);
         }
 
         /* Painéis Laterais */
         .side-panel {
-            background-color: #ffffff;
+            background-color: var(--panel-bg);
             width: 0;
             overflow: hidden;
             transition: width 0.3s ease;
@@ -937,6 +1043,46 @@
     </style>
 </head>
 <body>
+    <div class="left-utility-menu" aria-label="Menu lateral de utilidades">
+        <button id="btn-music-menu" class="utility-btn" type="button" aria-label="Integração com música">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18V5l10-2v13"></path>
+                <circle cx="6" cy="18" r="3"></circle>
+                <circle cx="16" cy="16" r="3"></circle>
+            </svg>
+        </button>
+        <button id="btn-theme-toggle" class="utility-btn" type="button" aria-label="Alternar tema" aria-pressed="false">
+            <svg class="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="4.5"></circle>
+                <path d="M12 2.5v2.2"></path>
+                <path d="M12 19.3v2.2"></path>
+                <path d="M4.7 4.7l1.6 1.6"></path>
+                <path d="M17.7 17.7l1.6 1.6"></path>
+                <path d="M2.5 12h2.2"></path>
+                <path d="M19.3 12h2.2"></path>
+                <path d="M4.7 19.3l1.6-1.6"></path>
+                <path d="M17.7 6.3l1.6-1.6"></path>
+            </svg>
+        </button>
+        <button id="btn-ai-menu" class="utility-btn" type="button" aria-label="Abrir assistente IA">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="5" width="18" height="14" rx="3"></rect>
+                <path d="M8 10h.01"></path>
+                <path d="M12 10h.01"></path>
+                <path d="M16 10h.01"></path>
+                <path d="M8 14h8"></path>
+            </svg>
+        </button>
+    </div>
+
+    <div id="ai-assistant-panel" class="ai-assistant-panel" hidden>
+        <div class="ai-assistant-panel__header">
+            <span>Assistente IA (Em breve)</span>
+            <button id="btn-close-ai-panel" class="ai-assistant-panel__close" type="button" aria-label="Fechar assistente IA">×</button>
+        </div>
+        <p>Em breve você poderá pedir resumos, sugestões de foco e organização diretamente aqui.</p>
+    </div>
+
     <button id="left-toggle" class="side-toggle" aria-label="Abrir painel de ferramentas" aria-expanded="false">›</button>
     
     <aside id="left-panel" class="side-panel">
@@ -1139,7 +1285,6 @@
                 <h3>CICLOS</h3>
                 <div class="setting-item cycle-settings">
                     <button id="btn-cycle-decrease" type="button" class="btn-secondary btn-control-cycle">Diminuir ciclo</button>
-                    <span id="cycle-status" class="cycle-status">Ciclo atual: 0/4</span>
                     <button id="btn-cycle-increase" type="button" class="btn-secondary btn-control-cycle">Aumentar ciclo</button>
                 </div>
             </div>
@@ -1163,6 +1308,7 @@
                 settings: {
                     sound: 'digital',
                     volume: 0.5,
+                    theme: 'light',
                     autoFocus: false,
                     autoBreak: false,
                     scale: 'A',
@@ -1292,6 +1438,7 @@
                     ...persistedState.settings,
                     sound: currentSound,
                     volume,
+                    theme: currentTheme,
                     autoFocus: autoFocusToggle.checked,
                     autoBreak: autoBreakToggle.checked,
                     scale: currentScale,
@@ -1480,6 +1627,11 @@
                 leftToggle.innerHTML = uiState.leftPanelOpen ? '‹' : '›';
                 leftToggle.setAttribute('aria-label', uiState.leftPanelOpen ? 'Fechar painel de ferramentas' : 'Abrir painel de ferramentas');
 
+                applyTheme(state.settings?.theme || 'light');
+                if (aiAssistantPanel) {
+                    aiAssistantPanel.hidden = true;
+                }
+
                 rightPanel.classList.toggle('open', Boolean(uiState.rightPanelOpen));
                 document.body.classList.toggle('right-open', Boolean(uiState.rightPanelOpen));
                 rightToggle.setAttribute('aria-expanded', uiState.rightPanelOpen ? 'true' : 'false');
@@ -1547,6 +1699,21 @@
         const leftPanel = document.getElementById('left-panel');
         const rightToggle = document.getElementById('right-toggle');
         const rightPanel = document.getElementById('right-panel');
+        const btnMusicMenu = document.getElementById('btn-music-menu');
+        const btnThemeToggle = document.getElementById('btn-theme-toggle');
+        const btnAiMenu = document.getElementById('btn-ai-menu');
+        const aiAssistantPanel = document.getElementById('ai-assistant-panel');
+        const btnCloseAiPanel = document.getElementById('btn-close-ai-panel');
+        let currentTheme = 'light';
+
+        function applyTheme(theme) {
+            currentTheme = theme === 'dark' ? 'dark' : 'light';
+            document.body.classList.toggle('dark-mode', currentTheme === 'dark');
+            if (btnThemeToggle) {
+                btnThemeToggle.setAttribute('aria-pressed', String(currentTheme === 'dark'));
+                btnThemeToggle.title = currentTheme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro';
+            }
+        }
 
         leftToggle.addEventListener('click', () => {
             const isOpen = leftPanel.classList.toggle('open');
@@ -1556,6 +1723,35 @@
             leftToggle.setAttribute('aria-label', isOpen ? 'Fechar painel de ferramentas' : 'Abrir painel de ferramentas');
             saveState();
         });
+
+        if (btnMusicMenu) {
+            btnMusicMenu.addEventListener('click', () => {
+                alert('Integração com Spotify/YouTube virá em breve.');
+            });
+        }
+
+        if (btnThemeToggle) {
+            btnThemeToggle.addEventListener('click', () => {
+                applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+                saveState();
+            });
+        }
+
+        if (btnAiMenu) {
+            btnAiMenu.addEventListener('click', () => {
+                if (aiAssistantPanel) {
+                    aiAssistantPanel.hidden = false;
+                }
+            });
+        }
+
+        if (btnCloseAiPanel) {
+            btnCloseAiPanel.addEventListener('click', () => {
+                if (aiAssistantPanel) {
+                    aiAssistantPanel.hidden = true;
+                }
+            });
+        }
 
         rightToggle.addEventListener('click', () => {
             const isOpen = rightPanel.classList.toggle('open');
@@ -1679,7 +1875,6 @@
         const btnPauseMode = document.getElementById('btn-pause-mode');
         const btnCycleDecrease = document.getElementById('btn-cycle-decrease');
         const btnCycleIncrease = document.getElementById('btn-cycle-increase');
-        const cycleStatus = document.getElementById('cycle-status');
         const timerWrapper = document.querySelector('.timer-wrapper');
 
         const radius = 140;
@@ -1716,7 +1911,6 @@
             sessionName.style.color = textColor;
             progressRing.style.stroke = ringColor;
             cycleCounter.textContent = `Ciclo: ${cycleCount}/4`;
-            if (cycleStatus) cycleStatus.textContent = `Ciclo atual: ${cycleCount}/4`;
 
         }
 
