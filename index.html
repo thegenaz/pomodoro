@@ -281,6 +281,9 @@
             width: 100%;
             max-width: 420px;
         }
+        .confirm-panel[hidden] {
+            display: none !important;
+        }
         .confirm-panel.show {
             display: flex;
         }
@@ -1656,6 +1659,8 @@
                 leftToggle.setAttribute('aria-label', uiState.leftPanelOpen ? 'Fechar painel de ferramentas' : 'Abrir painel de ferramentas');
 
                 applyTheme(state.settings?.theme || 'light');
+                hidePauseConfirmation();
+                hideResetConfirmation();
                 if (aiAssistantPanel) {
                     aiAssistantPanel.hidden = true;
                 }
@@ -2078,20 +2083,24 @@
 
         function showPauseConfirmation() {
             hideResetConfirmation();
+            pauseConfirmation.hidden = false;
             pauseConfirmation.classList.add('show');
         }
 
         function hidePauseConfirmation() {
             pauseConfirmation.classList.remove('show');
+            pauseConfirmation.hidden = true;
         }
 
         function showResetConfirmation() {
             hidePauseConfirmation();
+            resetConfirmation.hidden = false;
             resetConfirmation.classList.add('show');
         }
 
         function hideResetConfirmation() {
             resetConfirmation.classList.remove('show');
+            resetConfirmation.hidden = true;
         }
 
         btnReset.addEventListener('click', () => {
