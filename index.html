@@ -1543,35 +1543,69 @@
                 document.getElementById('volume-slider').value = volume * 100;
                 document.getElementById('volume-value').textContent = `${Math.round(volume * 100)}%`;
 
-                // Restaura Escalas
+                // Restaura Escalas e Timer
                 scales.B.focus = state.settings.sliderB || 25;
                 scales.C.focus = state.settings.sliderC || 40;
                 cycleCount = state.settings.cycleCount || 0;
-                pauseMode = state.settings.pauseMode || false;
+
                 const savedScale = state.settings.scale || 'A';
-                changeScale(savedScale, pauseMode, false);
+                const savedTimer = state.timer || {};
+                currentScale = savedTimer.currentScale || savedScale;
+                currentState = savedTimer.currentState || currentState;
+                cycleCount = savedTimer.cycleCount ?? cycleCount;
+                pauseMode = savedTimer.pauseMode ?? state.settings.pauseMode ?? false;
 
-                if (state.timer) {
-                    currentScale = state.timer.currentScale || currentScale;
-                    currentState = state.timer.currentState || currentState;
-                    cycleCount = state.timer.cycleCount || cycleCount;
-                    pauseMode = state.timer.pauseMode || pauseMode;
-                    if (pauseMode && currentState === 'pause') btnPauseMode.classList.add('active');
+                if (currentScale === 'A') {
+                    sliderContainer.classList.remove('show');
+                    timeLeft = scales.A.focus * 60; totalTime = scales.A.focus * 60;
+                } else {
+                    sliderContainer.classList.add('show');
+                    timeSlider.min = scales[currentScale].min;
+                    timeSlider.max = scales[currentScale].max;
+                    timeSlider.value = scales[currentScale].focus;
+                    sliderValue.textContent = `${scales[currentScale].focus} min`;
+                    timeLeft = scales[currentScale].focus * 60; totalTime = scales[currentScale].focus * 60;
+                }
 
-                    timeLeft = state.timer.timeLeft ?? (currentState === 'focus' ? scales[currentScale].focus * 60 : currentState === 'long' ? scales[currentScale].long * 60 : scales[currentScale].short * 60);
-                    totalTime = state.timer.totalTime ?? timeLeft;
+                if (savedTimer.currentScale) {
+                    if (savedTimer.currentScale === 'A') scaleBtn.textContent = 'Escala A: Foco Denso';
+                    if (savedTimer.currentScale === 'B') scaleBtn.textContent = 'Escala B: Foco Moderado';
+                    if (savedTimer.currentScale === 'C') scaleBtn.textContent = 'Escala C: Foco Leve';
+                }
 
-                    const elapsedSeconds = state.timer.isRunning && state.timer.lastSavedAt ? Math.floor((Date.now() - state.timer.lastSavedAt) / 1000) : 0;
-                    if (elapsedSeconds > 0) {
-                        advanceTimerBy(elapsedSeconds);
-                    }
+                if (savedTimer.timeLeft != null) {
+                    timeLeft = savedTimer.timeLeft;
+                    totalTime = savedTimer.totalTime ?? savedTimer.timeLeft;
+                } else if (currentState === 'focus') {
+                    timeLeft = scales[currentScale].focus * 60;
+                    totalTime = scales[currentScale].focus * 60;
+                } else if (currentState === 'long') {
+                    timeLeft = scales[currentScale].long * 60;
+                    totalTime = scales[currentScale].long * 60;
+                } else {
+                    timeLeft = scales[currentScale].short * 60;
+                    totalTime = scales[currentScale].short * 60;
+                }
 
-                    if (state.timer.isRunning) {
-                        startTimer();
-                    } else {
-                        stopTimer();
-                        btnStart.textContent = 'Iniciar';
-                    }
+                if (pauseMode) btnPauseMode.classList.add('active');
+                else btnPauseMode.classList.remove('active');
+
+                const elapsedSeconds = savedTimer.isRunning && savedTimer.lastSavedAt ? Math.floor((Date.now() - savedTimer.lastSavedAt) / 1000) : 0;
+                if (elapsedSeconds > 0) {
+                    advanceTimerBy(elapsedSeconds);
+                }
+
+                if (savedTimer.isRunning) {
+                    isRunning = true;
+                    clearInterval(timerInterval);
+                    timerInterval = setInterval(tick, 1000);
+                    btnStart.textContent = 'Pausar';
+                    if (popupStartBtn) popupStartBtn.textContent = 'Pausar';
+                } else {
+                    isRunning = false;
+                    clearInterval(timerInterval);
+                    btnStart.textContent = 'Iniciar';
+                    if (popupStartBtn) popupStartBtn.textContent = 'Iniciar';
                 }
                 cycleCounter.textContent = `Ciclo: ${cycleCount}/4`;
 
