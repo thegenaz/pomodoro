@@ -2116,10 +2116,12 @@
             appState.settings.pauseMode = pauseMode;
             saveState();
             hidePauseConfirmation();
+            hideResetConfirmation();
         });
 
         btnCancelPause.addEventListener('click', () => {
             hidePauseConfirmation();
+            hideResetConfirmation();
         });
 
         btnConfirmReset.addEventListener('click', () => {
@@ -2128,10 +2130,12 @@
             else setTimerState(currentState);
             btnStart.textContent = 'Iniciar';
             hideResetConfirmation();
+            hidePauseConfirmation();
         });
 
         btnCancelReset.addEventListener('click', () => {
             hideResetConfirmation();
+            hidePauseConfirmation();
         });
 
         btnCycleDecrease.addEventListener('click', () => {
