@@ -328,95 +328,6 @@
             opacity: 0;
         }
 
-        .popup-shell {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 50;
-            pointer-events: none;
-            align-items: flex-end;
-            justify-content: flex-end;
-            padding: 20px;
-        }
-
-        body.popup-mode {
-            overflow: hidden;
-            background: linear-gradient(135deg, var(--pergaminho), #f7efe0);
-        }
-
-        body.popup-mode > *:not(.popup-shell) {
-            display: none !important;
-        }
-
-        body.popup-mode .popup-shell {
-            display: flex !important;
-        }
-
-        .popup-card {
-            width: clamp(120px, 24vw, 170px);
-            min-width: 110px;
-            aspect-ratio: 1;
-            max-width: min(40vw, 240px);
-            max-height: min(40vw, 240px);
-            background: rgba(255,255,255,0.97);
-            border: 1px solid rgba(31, 107, 103, 0.18);
-            border-radius: 18px;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.16);
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            pointer-events: auto;
-            resize: both;
-            overflow: auto;
-        }
-
-        .popup-card .popup-header {
-            display: none;
-        }
-
-        .popup-timer {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            width: 100%;
-            height: 100%;
-        }
-
-        .popup-timer svg {
-            display: none;
-        }
-
-        .popup-texts {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            width: 100%;
-        }
-
-        .popup-texts .timer-text {
-            font-size: clamp(1.8rem, 5vw, 2.8rem);
-            line-height: 1;
-            letter-spacing: -1px;
-            color: var(--petroleo-escuro);
-            font-family: 'IBM Plex Mono', monospace;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .popup-texts .session-name {
-            display: none;
-        }
-
-        .popup-actions {
-            display: none;
-        }
-
         .progress-ring {
             fill: none;
             stroke-width: 10;
@@ -1193,39 +1104,8 @@
             <button id="btn-start" class="btn-start">Iniciar</button>
             <button id="btn-reset" class="btn-secondary">Zerar</button>
             <button id="btn-hide-timer" class="btn-secondary btn-hide-timer">Ocultar</button>
-            <button id="btn-popout-timer" class="btn-secondary" type="button" title="Abrir em janela flutuante" aria-label="Abrir em janela flutuante">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="7" height="7"></rect>
-                    <rect x="14" y="3" width="7" height="7"></rect>
-                    <rect x="3" y="14" width="7" height="7"></rect>
-                    <rect x="14" y="14" width="7" height="7"></rect>
-                </svg>
-            </button>
         </div>
     </main>
-
-    <div id="popup-shell" class="popup-shell" hidden>
-        <div class="popup-card">
-            <div class="popup-header">
-                <span class="popup-title">Cronômetro flutuante</span>
-                <button id="popup-close-btn" class="popup-close-btn" type="button" aria-label="Fechar janela flutuante">×</button>
-            </div>
-            <div class="popup-timer">
-                <svg viewBox="0 0 160 160" width="140" height="140">
-                    <circle cx="80" cy="80" r="64" stroke="#E6E0D4" stroke-width="8" fill="none" />
-                    <circle id="popup-progress-ring" class="progress-ring" cx="80" cy="80" r="64" stroke="var(--petroleo)" stroke-dasharray="402.1" stroke-dashoffset="0" />
-                </svg>
-                <div class="popup-texts">
-                    <span id="popup-timer-text" class="timer-text">20:00</span>
-                    <span id="popup-session-name" class="session-name">Sessão de Imersão</span>
-                </div>
-                <div class="popup-actions">
-                    <button id="popup-start-btn" class="btn-start" type="button">Iniciar</button>
-                    <button id="popup-hide-btn" class="btn-secondary" type="button">Ocultar</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <aside id="right-panel" class="side-panel">
         <div class="panel-content">
@@ -1796,7 +1676,6 @@
         const btnStart = document.getElementById('btn-start');
         const btnReset = document.getElementById('btn-reset');
         const btnHideTimer = document.getElementById('btn-hide-timer');
-        const btnPopoutTimer = document.getElementById('btn-popout-timer');
         const btnPauseMode = document.getElementById('btn-pause-mode');
         const btnCycleDecrease = document.getElementById('btn-cycle-decrease');
         const btnCycleIncrease = document.getElementById('btn-cycle-increase');
@@ -1808,63 +1687,6 @@
         progressRing.style.strokeDasharray = circumference;
         progressRing.style.strokeDashoffset = 0;
 
-        const popupShell = document.getElementById('popup-shell');
-        const popupProgressRing = document.getElementById('popup-progress-ring');
-        const popupTimerText = document.getElementById('popup-timer-text');
-        const popupSessionName = document.getElementById('popup-session-name');
-        const popupCloseBtn = document.getElementById('popup-close-btn');
-        const popupStartBtn = document.getElementById('popup-start-btn');
-        const popupHideBtn = document.getElementById('popup-hide-btn');
-
-        const isPopupMode = new URLSearchParams(window.location.search).get('popup') === '1';
-        if (isPopupMode) {
-            document.body.classList.add('popup-mode');
-            document.title = 'Cadência • Cronômetro';
-            if (popupShell) {
-                popupShell.hidden = false;
-                popupShell.removeAttribute('hidden');
-            }
-        }
-
-        function updatePopupScale() {
-            const widthScale = Math.max(0.72, Math.min(1, (window.innerWidth || 320) / 320));
-            const heightScale = Math.max(0.72, Math.min(1, (window.innerHeight || 420) / 420));
-            const scale = Math.min(widthScale, heightScale);
-            document.documentElement.style.setProperty('--popup-scale', scale.toFixed(3));
-        }
-
-        function syncPopupState() {
-            if (!popupShell || !popupTimerText) return;
-            const popupValue = formatTime(timeLeft);
-            popupTimerText.textContent = popupValue;
-            popupTimerText.style.fontSize = `${clamp(Math.max(18, Math.min(44, Math.round((popupShell.offsetWidth || 140) * 0.34))), 18, 44)}px`;
-            popupTimerText.style.lineHeight = '1';
-        }
-
-        function clamp(value, min, max) {
-            return Math.min(max, Math.max(min, value));
-        }
-
-        window.addEventListener('resize', () => {
-            updatePopupScale();
-            syncPopupState();
-        });
-        window.addEventListener('load', () => {
-            updatePopupScale();
-            syncPopupState();
-            if (isPopupMode && window.opener && !window.opener.closed) {
-                window.opener.postMessage({ type: 'cadenciaPopupReady' }, '*');
-            }
-        });
-        updatePopupScale();
-        syncPopupState();
-
-        const popupRadius = 64;
-        const popupCircumference = 2 * Math.PI * popupRadius;
-        if (popupProgressRing) {
-            popupProgressRing.style.strokeDasharray = popupCircumference;
-            popupProgressRing.style.strokeDashoffset = 0;
-        }
 
         function formatTime(seconds) {
             const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -1896,22 +1718,6 @@
             cycleCounter.textContent = `Ciclo: ${cycleCount}/4`;
             if (cycleStatus) cycleStatus.textContent = `Ciclo atual: ${cycleCount}/4`;
 
-            if (popupProgressRing) {
-                popupProgressRing.style.strokeDashoffset = popupCircumference * (1 - progress);
-                popupProgressRing.style.stroke = ringColor;
-            }
-            if (popupTimerText) {
-                popupTimerText.textContent = formatTime(timeLeft);
-                popupTimerText.style.color = textColor;
-            }
-            if (popupSessionName) {
-                popupSessionName.textContent = '';
-                popupSessionName.style.color = textColor;
-            }
-            if (popupStartBtn) {
-                popupStartBtn.textContent = isRunning ? 'Pausar' : 'Iniciar';
-            }
-            syncPopupState();
         }
 
         function changeScale(scale, keepPause = false, shouldSave = true) {
@@ -2131,95 +1937,14 @@
         });
 
         function toggleTimerVisibility() {
-            const isHidden = popupShell ? popupShell.classList.toggle('hidden-time') : false;
-            timerWrapper.classList.remove('hidden-time');
+            const isHidden = timerWrapper.classList.toggle('hidden-time');
             btnHideTimer.textContent = isHidden ? 'Revelar' : 'Ocultar';
-            if (popupHideBtn) popupHideBtn.textContent = isHidden ? 'Revelar' : 'Ocultar';
             saveState();
         }
 
         if (btnHideTimer) {
             btnHideTimer.addEventListener('click', toggleTimerVisibility);
         }
-
-        if (popupHideBtn) {
-            popupHideBtn.addEventListener('click', toggleTimerVisibility);
-        }
-
-        let popoutWindow = null;
-
-        function resetPopupRuntimeState() {
-            if (popoutWindow && !popoutWindow.closed) {
-                popoutWindow.postMessage({ type: 'cadenciaResetPopup' }, '*');
-            }
-        }
-
-        function openPopoutTimer() {
-            if (popoutWindow && !popoutWindow.closed) {
-                popoutWindow.focus();
-                popoutWindow.postMessage({ type: 'cadenciaStateUpdated', state: appState }, '*');
-                saveState();
-                return;
-            }
-
-            const popupUrl = new URL(window.location.href);
-            popupUrl.searchParams.set('popup', '1');
-            popoutWindow = window.open(
-                popupUrl.toString(),
-                'cadenciaTimerPopup',
-                'width=280,height=360,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=no'
-            );
-            if (popoutWindow) {
-                popoutWindow.focus();
-                popoutWindow.document.title = 'Cadência • Cronômetro';
-                popoutWindow.postMessage({ type: 'cadenciaStateUpdated', state: appState }, '*');
-            }
-            appState.ui.floatingTimerOpen = true;
-            saveState();
-        }
-
-        if (btnPopoutTimer) {
-            btnPopoutTimer.addEventListener('click', openPopoutTimer);
-        }
-
-        window.addEventListener('message', (event) => {
-            if (event.data?.type === 'cadenciaResetPopup') {
-                if (popoutWindow && !popoutWindow.closed) {
-                    popoutWindow.close();
-                }
-                popoutWindow = null;
-                appState.ui.floatingTimerOpen = false;
-                saveState();
-                return;
-            }
-            if (event.data?.type === 'cadenciaPopupReady' && window.opener && !window.opener.closed) {
-                window.opener.postMessage({ type: 'cadenciaStateUpdated', state: appState }, '*');
-                return;
-            }
-            if (event.data?.type === 'cadenciaStateUpdated' && event.data.state) {
-                appState = normalizeAppState(event.data.state);
-                localStorage.setItem('cadenciaState', JSON.stringify(appState));
-                loadState();
-            }
-        });
-
-        if (popupCloseBtn) {
-            popupCloseBtn.addEventListener('click', () => {
-                if (window.opener && !window.opener.closed) {
-                    window.opener.appState = appState;
-                    window.opener.saveState?.();
-                }
-                window.close();
-            });
-        }
-
-        window.addEventListener('beforeunload', () => {
-            if (window.opener && !window.opener.closed) {
-                window.opener.popoutWindow = null;
-                window.opener.appState.ui.floatingTimerOpen = false;
-                window.opener.saveState?.();
-            }
-        });
 
         if (popupStartBtn) {
             popupStartBtn.addEventListener('click', () => {
