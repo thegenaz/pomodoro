@@ -354,9 +354,14 @@
             width: 140%; height: 140%;
             opacity: 1;
         }
+        .timer-wrapper.hidden-time svg,
+        .timer-wrapper.hidden-time .timer-content,
         .timer-wrapper.hidden-time .timer-text,
         .timer-wrapper.hidden-time .session-name {
             opacity: 0;
+        }
+        .timer-wrapper.hidden-time {
+            pointer-events: none;
         }
 
         /* Botões */
@@ -1112,6 +1117,13 @@
                 </div>
                 <input type="range" id="volume-slider" class="volume-slider" min="0" max="100" value="50">
             </div>
+            <div class="settings-group">
+                <h3>CICLOS</h3>
+                <div class="setting-item cycle-settings">
+                    <button id="btn-cycle-decrease" type="button" class="btn-secondary btn-control-cycle">Diminuir ciclo</button>
+                    <button id="btn-cycle-increase" type="button" class="btn-secondary btn-control-cycle">Aumentar ciclo</button>
+                </div>
+            </div>
         </div>
     </aside>
 
@@ -1452,7 +1464,6 @@
         const btnCycleIncrease = document.getElementById('btn-cycle-increase');
         const btnScaleInfo = document.getElementById('btn-scale-info');
         const scaleInfoPanel = document.getElementById('scale-info-panel');
-        const cycleStatus = document.getElementById('cycle-status');
         const timerWrapper = document.querySelector('.timer-wrapper');
 
         const radius = 140;
@@ -1488,7 +1499,6 @@
             sessionName.style.color = textColor;
             progressRing.style.stroke = ringColor;
             cycleCounter.textContent = `Ciclo: ${cycleCount}/4`;
-            if (cycleStatus) cycleStatus.textContent = `Ciclo atual: ${cycleCount}/4`;
         }
 
         function changeScale(scale, keepPause = false, shouldSave = true) {
@@ -1689,19 +1699,23 @@
             hideConfirmation();
         });
 
-        btnCycleDecrease.addEventListener('click', () => {
-            cycleCount = Math.max(0, cycleCount - 1);
-            appState.settings.cycleCount = cycleCount;
-            saveState();
-            updateDisplay();
-        });
+        if (btnCycleDecrease) {
+            btnCycleDecrease.addEventListener('click', () => {
+                cycleCount = Math.max(0, cycleCount - 1);
+                appState.settings.cycleCount = cycleCount;
+                saveState();
+                updateDisplay();
+            });
+        }
 
-        btnCycleIncrease.addEventListener('click', () => {
-            cycleCount = Math.min(4, cycleCount + 1);
-            appState.settings.cycleCount = cycleCount;
-            saveState();
-            updateDisplay();
-        });
+        if (btnCycleIncrease) {
+            btnCycleIncrease.addEventListener('click', () => {
+                cycleCount = Math.min(4, cycleCount + 1);
+                appState.settings.cycleCount = cycleCount;
+                saveState();
+                updateDisplay();
+            });
+        }
 
         scaleBtn.addEventListener('click', (e) => { e.stopPropagation(); scaleDropdown.classList.toggle('show'); });
         document.addEventListener('click', () => { scaleDropdown.classList.remove('show'); });
@@ -1721,10 +1735,15 @@
         });
 
         // FASE 8: Ocultar/Revelar Tempo Principal
-        if (btnHideTimer) {
+        if (btnHideTimer && timerWrapper) {
             btnHideTimer.addEventListener('click', () => {
                 const isHidden = timerWrapper.classList.toggle('hidden-time');
                 btnHideTimer.textContent = isHidden ? 'Revelar' : 'Ocultar';
+                if (isHidden) {
+                    timerWrapper.setAttribute('aria-hidden', 'true');
+                } else {
+                    timerWrapper.removeAttribute('aria-hidden');
+                }
             });
         }
 
