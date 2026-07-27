@@ -332,6 +332,111 @@
             opacity: 0;
         }
 
+        .popup-shell {
+            display: none;
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--pergaminho), #f7efe0);
+            padding: 24px;
+            z-index: 50;
+        }
+
+        body.popup-mode {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--pergaminho), #f7efe0);
+        }
+
+        body.popup-mode > *:not(.popup-shell) {
+            display: none !important;
+        }
+
+        body.popup-mode .popup-shell {
+            display: flex;
+        }
+
+        .popup-card {
+            width: min(100%, 320px);
+            background: rgba(255,255,255,0.96);
+            border: 1px solid rgba(31, 107, 103, 0.16);
+            border-radius: 24px;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.16);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .popup-title {
+            font-family: 'Lora', serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--petroleo-escuro);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .popup-close-btn {
+            border: none;
+            background: transparent;
+            color: var(--tinta);
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 999px;
+        }
+
+        .popup-close-btn:hover {
+            background: rgba(31, 107, 103, 0.1);
+        }
+
+        .popup-timer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .popup-timer svg {
+            width: 140px;
+            height: 140px;
+        }
+
+        .popup-texts {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .popup-shell.hidden-time .popup-texts {
+            opacity: 0;
+        }
+
+        .popup-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .popup-actions .btn-start,
+        .popup-actions .btn-secondary {
+            padding: 0.7rem 1.2rem;
+            font-size: 0.95rem;
+        }
+
         .progress-ring {
             fill: none;
             stroke-width: 10;
@@ -1119,22 +1224,25 @@
         </div>
     </main>
 
-    <div id="timer-popout" class="timer-popout" hidden>
-        <div class="timer-popout-header">
-            <span class="timer-popout-title">Cronômetro</span>
-            <div class="timer-popout-actions">
-                <button id="popout-hide-btn" class="timer-popout-btn" type="button">Ocultar</button>
-                <button id="popout-close-btn" class="timer-popout-btn" type="button" aria-label="Fechar janela flutuante">×</button>
+    <div id="popup-shell" class="popup-shell" hidden>
+        <div class="popup-card">
+            <div class="popup-header">
+                <span class="popup-title">Cronômetro flutuante</span>
+                <button id="popup-close-btn" class="popup-close-btn" type="button" aria-label="Fechar janela flutuante">×</button>
             </div>
-        </div>
-        <div class="timer-popout-content">
-            <svg class="timer-popout-svg" viewBox="0 0 140 140" width="110" height="110">
-                <circle cx="70" cy="70" r="54" stroke="#E6E0D4" stroke-width="8" fill="none" />
-                <circle id="popout-progress-ring" class="progress-ring" cx="70" cy="70" r="54" stroke="var(--petroleo)" stroke-dasharray="339.3" stroke-dashoffset="0" />
-            </svg>
-            <div class="timer-popout-texts">
-                <span id="popout-timer-text" class="timer-text">20:00</span>
-                <span id="popout-session-name" class="session-name">Sessão de Imersão</span>
+            <div class="popup-timer">
+                <svg viewBox="0 0 160 160" width="140" height="140">
+                    <circle cx="80" cy="80" r="64" stroke="#E6E0D4" stroke-width="8" fill="none" />
+                    <circle id="popup-progress-ring" class="progress-ring" cx="80" cy="80" r="64" stroke="var(--petroleo)" stroke-dasharray="402.1" stroke-dashoffset="0" />
+                </svg>
+                <div class="popup-texts">
+                    <span id="popup-timer-text" class="timer-text">20:00</span>
+                    <span id="popup-session-name" class="session-name">Sessão de Imersão</span>
+                </div>
+                <div class="popup-actions">
+                    <button id="popup-start-btn" class="btn-start" type="button">Iniciar</button>
+                    <button id="popup-hide-btn" class="btn-secondary" type="button">Ocultar</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1682,17 +1790,24 @@
         progressRing.style.strokeDasharray = circumference;
         progressRing.style.strokeDashoffset = 0;
 
-        const popoutWindow = document.getElementById('timer-popout');
-        const popoutProgressRing = document.getElementById('popout-progress-ring');
-        const popoutTimerText = document.getElementById('popout-timer-text');
-        const popoutSessionName = document.getElementById('popout-session-name');
-        const popoutCloseBtn = document.getElementById('popout-close-btn');
-        const popoutHideBtn = document.getElementById('popout-hide-btn');
-        const popoutRadius = 54;
-        const popoutCircumference = 2 * Math.PI * popoutRadius;
-        if (popoutProgressRing) {
-            popoutProgressRing.style.strokeDasharray = popoutCircumference;
-            popoutProgressRing.style.strokeDashoffset = 0;
+        const isPopupMode = new URLSearchParams(window.location.search).get('popup') === '1';
+        if (isPopupMode) {
+            document.body.classList.add('popup-mode');
+            document.title = 'Cadência • Cronômetro';
+        }
+
+        const popupShell = document.getElementById('popup-shell');
+        const popupProgressRing = document.getElementById('popup-progress-ring');
+        const popupTimerText = document.getElementById('popup-timer-text');
+        const popupSessionName = document.getElementById('popup-session-name');
+        const popupCloseBtn = document.getElementById('popup-close-btn');
+        const popupStartBtn = document.getElementById('popup-start-btn');
+        const popupHideBtn = document.getElementById('popup-hide-btn');
+        const popupRadius = 64;
+        const popupCircumference = 2 * Math.PI * popupRadius;
+        if (popupProgressRing) {
+            popupProgressRing.style.strokeDasharray = popupCircumference;
+            popupProgressRing.style.strokeDashoffset = 0;
         }
 
         function formatTime(seconds) {
@@ -1725,14 +1840,14 @@
             cycleCounter.textContent = `Ciclo: ${cycleCount}/4`;
             if (cycleStatus) cycleStatus.textContent = `Ciclo atual: ${cycleCount}/4`;
 
-            if (popoutProgressRing) {
-                const popoutOffset = popoutCircumference * (1 - progress);
-                popoutProgressRing.style.strokeDashoffset = popoutOffset;
-                popoutProgressRing.style.stroke = ringColor;
-                popoutTimerText.textContent = formatTime(timeLeft);
-                popoutSessionName.textContent = name;
-                popoutSessionName.style.color = textColor;
-                popoutTimerText.style.color = textColor;
+            if (popupProgressRing) {
+                const popupOffset = popupCircumference * (1 - progress);
+                popupProgressRing.style.strokeDashoffset = popupOffset;
+                popupProgressRing.style.stroke = ringColor;
+                popupTimerText.textContent = formatTime(timeLeft);
+                popupSessionName.textContent = name;
+                popupSessionName.style.color = textColor;
+                popupTimerText.style.color = textColor;
             }
         }
 
@@ -1954,12 +2069,11 @@
         });
 
         function toggleTimerVisibility() {
-            const isPopoutOpen = popoutWindow && !popoutWindow.hidden;
-            const isHidden = isPopoutOpen
-                ? popoutWindow.classList.toggle('hidden-time')
+            const isHidden = popupShell
+                ? popupShell.classList.toggle('hidden-time')
                 : timerWrapper.classList.toggle('hidden-time');
             btnHideTimer.textContent = isHidden ? 'Revelar' : 'Ocultar';
-            if (popoutHideBtn) popoutHideBtn.textContent = isHidden ? 'Revelar' : 'Ocultar';
+            if (popupHideBtn) popupHideBtn.textContent = isHidden ? 'Revelar' : 'Ocultar';
             saveState();
         }
 
@@ -1967,32 +2081,32 @@
             btnHideTimer.addEventListener('click', toggleTimerVisibility);
         }
 
-        if (popoutHideBtn) {
-            popoutHideBtn.addEventListener('click', toggleTimerVisibility);
+        if (popupHideBtn) {
+            popupHideBtn.addEventListener('click', toggleTimerVisibility);
         }
+
+        let popoutWindow = null;
 
         function openPopoutTimer() {
-            if (!popoutWindow) return;
-            const shouldHide = timerWrapper.classList.contains('hidden-time');
-            popoutWindow.hidden = false;
-            timerWrapper.classList.add('is-popout-open');
-            popoutWindow.classList.toggle('hidden-time', shouldHide);
-            popoutHideBtn.textContent = shouldHide ? 'Revelar' : 'Ocultar';
-            if (!popoutWindow.style.left && !popoutWindow.style.top) {
-                popoutWindow.style.right = '20px';
-                popoutWindow.style.bottom = '20px';
-                popoutWindow.style.left = '';
-                popoutWindow.style.top = '';
+            if (popoutWindow && !popoutWindow.closed) {
+                popoutWindow.focus();
+                saveState();
+                return;
             }
-            updateDisplay();
-            saveState();
-        }
 
-        function closePopoutTimer() {
-            if (!popoutWindow) return;
-            popoutWindow.hidden = true;
-            timerWrapper.classList.remove('is-popout-open');
-            updateDisplay();
+            const popupUrl = new URL(window.location.href);
+            popupUrl.searchParams.set('popup', '1');
+            popoutWindow = window.open(
+                popupUrl.toString(),
+                'cadenciaTimerPopup',
+                'width=340,height=460,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=no'
+            );
+            if (popoutWindow) {
+                popoutWindow.focus();
+                popoutWindow.document.title = 'Cadência • Cronômetro';
+            }
+            timerWrapper.classList.add('is-popout-open');
+            appState.ui.floatingTimerOpen = true;
             saveState();
         }
 
@@ -2000,32 +2114,21 @@
             btnPopoutTimer.addEventListener('click', openPopoutTimer);
         }
 
-        if (popoutCloseBtn) {
-            popoutCloseBtn.addEventListener('click', closePopoutTimer);
+        if (popupCloseBtn) {
+            popupCloseBtn.addEventListener('click', () => {
+                timerWrapper.classList.remove('is-popout-open');
+                if (window.opener && !window.opener.closed) {
+                    window.opener.appState = appState;
+                    window.opener.saveState?.();
+                }
+                window.close();
+            });
         }
 
-        if (popoutWindow) {
-            popoutWindow.addEventListener('pointerdown', (e) => {
-                if (e.target.closest('button')) return;
-                const startX = e.clientX;
-                const startY = e.clientY;
-                const startLeft = popoutWindow.offsetLeft;
-                const startTop = popoutWindow.offsetTop;
-                const onMove = (ev) => {
-                    const nextLeft = Math.max(12, Math.min(window.innerWidth - popoutWindow.offsetWidth - 12, startLeft + ev.clientX - startX));
-                    const nextTop = Math.max(12, Math.min(window.innerHeight - popoutWindow.offsetHeight - 12, startTop + ev.clientY - startY));
-                    popoutWindow.style.left = `${nextLeft}px`;
-                    popoutWindow.style.top = `${nextTop}px`;
-                    popoutWindow.style.right = 'auto';
-                    popoutWindow.style.bottom = 'auto';
-                };
-                const onUp = () => {
-                    document.removeEventListener('pointermove', onMove);
-                    document.removeEventListener('pointerup', onUp);
-                    saveState();
-                };
-                document.addEventListener('pointermove', onMove);
-                document.addEventListener('pointerup', onUp);
+        if (popupStartBtn) {
+            popupStartBtn.addEventListener('click', () => {
+                initAudioContext();
+                if (isRunning) stopTimer(); else startTimer();
             });
         }
 
