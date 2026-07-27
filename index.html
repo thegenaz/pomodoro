@@ -153,7 +153,6 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            position: relative;
         }
 
         .cycle-section .btn-secondary {
@@ -166,92 +165,34 @@
 
         .confirm-panel {
             display: none;
-            position: absolute;
-            top: calc(100% + 8px);
-            right: 0;
-            width: 260px;
             flex-direction: column;
-            gap: 0.5rem;
-            padding: 0.85rem;
+            gap: 0.75rem;
+            padding: 1rem;
             border: 1px solid #e0b0aa;
-            background: #fdf1ef;
+            background: #fbecec;
             border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-            z-index: 10;
+            margin-top: 1rem;
+            width: 100%;
+            max-width: 420px;
         }
         .confirm-panel.show {
             display: flex;
         }
         .confirm-panel .confirm-text {
-            font-size: 0.88rem;
+            font-size: 1rem;
             color: #9f2a2a;
-            line-height: 1.4;
+            line-height: 1.5;
             font-weight: 700;
         }
         .confirm-buttons {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             flex-wrap: wrap;
-        }
-        .confirm-buttons .btn-secondary {
-            padding: 0.5rem 0.9rem;
-            font-size: 0.82rem;
         }
         .btn-danger {
             background-color: #a63d2f;
             color: white;
             border-color: #a63d2f;
-        }
-
-        .btn-scale-info {
-            min-width: 40px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-size: 1.1rem;
-            line-height: 1;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            padding: 0;
-        }
-
-        .scale-info-panel {
-            display: none;
-            position: fixed;
-            top: 110px;
-            left: 10px;
-            width: 280px;
-            max-height: 400px;
-            overflow-y: auto;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 16px;
-            box-shadow: 0 18px 45px rgba(0,0,0,0.12);
-            padding: 1rem;
-            z-index: 15;
-        }
-        .scale-info-panel.show {
-            display: block;
-        }
-        body.left-open .scale-info-panel {
-            left: calc(var(--panel-width) + 10px);
-            top: 120px;
-            width: 280px;
-            position: fixed;
-            box-shadow: 0 18px 45px rgba(0,0,0,0.12);
-        }
-        .scale-info-panel h3 {
-            margin-bottom: 0.75rem;
-            font-size: 1rem;
-            color: var(--petroleo-escuro);
-        }
-        .scale-info-panel p {
-            font-size: 0.88rem;
-            line-height: 1.6;
-            color: #4b4b4b;
-            margin-bottom: 0.9rem;
         }
 
         /* Slider de Ajuste Fino */
@@ -295,6 +236,100 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        .timer-wrapper.is-popout-open {
+            display: none;
+        }
+
+        .timer-popout {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 40;
+            background: rgba(255,255,255,0.97);
+            border: 1px solid rgba(31, 107, 103, 0.2);
+            border-radius: 18px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.16);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 180px;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .timer-popout:active {
+            cursor: grabbing;
+        }
+
+        .timer-popout-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .timer-popout-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--petroleo-escuro);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .timer-popout-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .timer-popout-btn {
+            border: none;
+            background: transparent;
+            color: var(--petroleo-escuro);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 2px 6px;
+            border-radius: 999px;
+        }
+
+        .timer-popout-btn:hover {
+            background: rgba(31, 107, 103, 0.1);
+        }
+
+        .timer-popout-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .timer-popout-svg {
+            width: 110px;
+            height: 110px;
+        }
+
+        .timer-popout-texts {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .timer-popout .timer-text {
+            font-size: 2rem;
+            letter-spacing: -1px;
+        }
+
+        .timer-popout .session-name {
+            font-size: 0.8rem;
+            margin-top: 0.2rem;
+        }
+
+        .timer-popout.hidden-time .timer-popout-texts {
+            opacity: 0;
         }
 
         .progress-ring {
@@ -354,17 +389,9 @@
             width: 140%; height: 140%;
             opacity: 1;
         }
-        .timer-wrapper.hidden-time svg {
-            opacity: 0.35;
-            stroke: rgba(33, 150, 83, 0.7);
-        }
-        .timer-wrapper.hidden-time .timer-content,
         .timer-wrapper.hidden-time .timer-text,
         .timer-wrapper.hidden-time .session-name {
             opacity: 0;
-        }
-        .timer-wrapper.hidden-time {
-            pointer-events: none;
         }
 
         /* Botões */
@@ -927,13 +954,6 @@
                 <button class="tab-btn" data-tab="notas">Bloco de Notas</button>
                 <button class="tab-btn" data-tab="mapa">Mapa Mental</button>
             </div>
-            <div id="scale-info-panel" class="scale-info-panel" aria-live="polite">
-                <h3>Informações sobre Escala</h3>
-                <p>As escalas foram definidas previamente com o objetivo de facilitar o estudo e a aplicação do método pomodoro. Elas variam em três níveis:</p>
-                <p><strong>Escala A: foco denso:</strong> criada para quem está começando a utilizar o método pomodoro ou que irão estudar materiais que necessitam de maiores níveis de concentração. Por isso que o tempo ideal, nesse caso, são de vinte minutos. Isso trará pausas também mais curtas, mas que facilitará o desenvolvimento e aprendizado. Sinta-se à vontade para escolher outra escala, caso necessário.</p>
-                <p><strong>Escala B:</strong> para usuários recorrentes do método pomodoro e para o estudo cotidiano.</p>
-                <p><strong>Escala C:</strong> LEVE, como diz, com um tempo maior de duração, ótimo método para revisitar material, fazer simulações ou testes.</p>
-            </div>
 
             <!-- Conteúdo Tarefas -->
             <div id="tab-tarefas" class="tab-content active">
@@ -1047,7 +1067,6 @@
 
     <main id="center-content">
         <div class="top-controls">
-            <button id="btn-scale-info" type="button" class="btn-secondary btn-scale-info" aria-label="Informações sobre escala">?</button>
             <div class="scale-selector-container">
                 <button id="scale-btn" class="scale-btn">Escala A: Foco Denso</button>
                 <div id="scale-dropdown" class="scale-dropdown">
@@ -1059,12 +1078,12 @@
             <div class="cycle-section">
                 <div id="cycle-counter" class="cycle-counter">Ciclo: 0/4</div>
                 <button id="btn-pause-mode" class="btn-secondary btn-pause-toggle">Fazer uma pausa</button>
-                <div id="pause-confirmation" class="confirm-panel" aria-live="polite">
-                    <span class="confirm-text">Isso zerará o cronômetro.</span>
-                    <div class="confirm-buttons">
-                        <button id="btn-confirm-action" type="button" class="btn-secondary btn-danger">Tem certeza?</button>
-                        <button id="btn-cancel-confirm" type="button" class="btn-secondary">Não</button>
-                    </div>
+            </div>
+            <div id="pause-confirmation" class="confirm-panel" aria-live="polite">
+                <span class="confirm-text">Isso zerará o cronômetro.</span>
+                <div class="confirm-buttons">
+                    <button id="btn-confirm-action" type="button" class="btn-secondary btn-danger">Tem certeza?</button>
+                    <button id="btn-cancel-confirm" type="button" class="btn-secondary">Não</button>
                 </div>
             </div>
         </div>
@@ -1089,8 +1108,36 @@
             <button id="btn-start" class="btn-start">Iniciar</button>
             <button id="btn-reset" class="btn-secondary">Zerar</button>
             <button id="btn-hide-timer" class="btn-secondary btn-hide-timer">Ocultar</button>
+            <button id="btn-popout-timer" class="btn-secondary" type="button" title="Abrir em janela flutuante" aria-label="Abrir em janela flutuante">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                </svg>
+            </button>
         </div>
     </main>
+
+    <div id="timer-popout" class="timer-popout" hidden>
+        <div class="timer-popout-header">
+            <span class="timer-popout-title">Cronômetro</span>
+            <div class="timer-popout-actions">
+                <button id="popout-hide-btn" class="timer-popout-btn" type="button">Ocultar</button>
+                <button id="popout-close-btn" class="timer-popout-btn" type="button" aria-label="Fechar janela flutuante">×</button>
+            </div>
+        </div>
+        <div class="timer-popout-content">
+            <svg class="timer-popout-svg" viewBox="0 0 140 140" width="110" height="110">
+                <circle cx="70" cy="70" r="54" stroke="#E6E0D4" stroke-width="8" fill="none" />
+                <circle id="popout-progress-ring" class="progress-ring" cx="70" cy="70" r="54" stroke="var(--petroleo)" stroke-dasharray="339.3" stroke-dashoffset="0" />
+            </svg>
+            <div class="timer-popout-texts">
+                <span id="popout-timer-text" class="timer-text">20:00</span>
+                <span id="popout-session-name" class="session-name">Sessão de Imersão</span>
+            </div>
+        </div>
+    </div>
 
     <aside id="right-panel" class="side-panel">
         <div class="panel-content">
@@ -1121,22 +1168,10 @@
                 <input type="range" id="volume-slider" class="volume-slider" min="0" max="100" value="50">
             </div>
             <div class="settings-group">
-                <h3>Som Ambiente</h3>
-                <div class="setting-item ambient-options">
-                    <button id="ambient-noise" type="button" class="btn-secondary btn-ambient-toggle">Ruído</button>
-                    <button id="ambient-rain" type="button" class="btn-secondary btn-ambient-toggle">Chuva</button>
-                    <button id="ambient-lofi" type="button" class="btn-secondary btn-ambient-toggle">Lo-Fi</button>
-                </div>
-                <div class="setting-item" style="margin-top: 1rem;">
-                    <label for="ambient-volume-slider">Volume ambiente</label>
-                    <span id="ambient-volume-value" style="font-size: 0.85rem; color: #666;">50%</span>
-                </div>
-                <input type="range" id="ambient-volume-slider" class="volume-slider" min="0" max="100" value="50">
-            </div>
-            <div class="settings-group">
                 <h3>CICLOS</h3>
                 <div class="setting-item cycle-settings">
                     <button id="btn-cycle-decrease" type="button" class="btn-secondary btn-control-cycle">Diminuir ciclo</button>
+                    <span id="cycle-status" class="cycle-status">Ciclo atual: 0/4</span>
                     <button id="btn-cycle-increase" type="button" class="btn-secondary btn-control-cycle">Aumentar ciclo</button>
                 </div>
             </div>
@@ -1152,34 +1187,76 @@
 
     <script>
         // ====================== FASE 7: Estado Global e Persistência ======================
-        let appState = {
-            tasks: [],
-            notes: { title: '', body: '' },
-            postits: [],
-            settings: {
-                sound: 'digital',
-                volume: 0.5,
-                ambientSound: null,
-                ambientVolume: 0.5,
-                autoFocus: false,
-                autoBreak: false,
-                scale: 'A',
-                sliderB: 25,
-                sliderC: 40,
-                cycleCount: 0,
-                pauseMode: false
-            },
-            timer: {
-                currentScale: 'A',
-                currentState: 'focus',
-                cycleCount: 0,
-                pauseMode: false,
-                timeLeft: 20 * 60,
-                totalTime: 20 * 60,
-                isRunning: false,
-                lastSavedAt: Date.now()
-            }
-        };
+        function getDefaultAppState() {
+            return {
+                tasks: [],
+                notes: { title: '', body: '' },
+                postits: [],
+                settings: {
+                    sound: 'digital',
+                    volume: 0.5,
+                    autoFocus: false,
+                    autoBreak: false,
+                    scale: 'A',
+                    sliderB: 25,
+                    sliderC: 40,
+                    cycleCount: 0,
+                    pauseMode: false
+                },
+                timer: {
+                    currentScale: 'A',
+                    currentState: 'focus',
+                    cycleCount: 0,
+                    pauseMode: false,
+                    timeLeft: 20 * 60,
+                    totalTime: 20 * 60,
+                    isRunning: false,
+                    lastSavedAt: Date.now()
+                },
+                ui: {
+                    activeTab: 'tarefas',
+                    leftPanelOpen: false,
+                    rightPanelOpen: false,
+                    mainTimerHidden: false,
+                    miniTimerHidden: false,
+                    floatingTimerOpen: false,
+                    floatingTimerPosition: null,
+                    filters: {
+                        status: [],
+                        priority: []
+                    }
+                },
+                miniTimer: {
+                    timeLeft: 600,
+                    isRunning: false
+                }
+            };
+        }
+
+        function normalizeAppState(state) {
+            const base = getDefaultAppState();
+            const source = state || {};
+            return {
+                ...base,
+                ...source,
+                notes: { ...base.notes, ...(source.notes || {}) },
+                settings: { ...base.settings, ...(source.settings || {}) },
+                timer: { ...base.timer, ...(source.timer || {}) },
+                ui: {
+                    ...base.ui,
+                    ...(source.ui || {}),
+                    filters: {
+                        ...base.ui.filters,
+                        ...((source.ui && source.ui.filters) || {})
+                    }
+                },
+                miniTimer: { ...base.miniTimer, ...(source.miniTimer || {}) },
+                tasks: Array.isArray(source.tasks) ? source.tasks : [],
+                postits: Array.isArray(source.postits) ? source.postits : []
+            };
+        }
+
+        let appState = getDefaultAppState();
 
         // Fallback de memória caso o localStorage esteja bloqueado (ex: abertura via file://)
         const memStore = {};
@@ -1231,15 +1308,32 @@
         function saveState() {
             if (isRestoringState) return;
             try {
-                appState.notes.title = document.getElementById('note-title').value;
-                appState.notes.body = document.getElementById('note-body').value;
-                appState.postits = Array.from(document.querySelectorAll('.post-it')).map(p => ({
+                const persistedState = normalizeAppState(appState);
+
+                persistedState.notes.title = document.getElementById('note-title').value;
+                persistedState.notes.body = document.getElementById('note-body').value;
+                persistedState.postits = Array.from(document.querySelectorAll('.post-it')).map(p => ({
                     x: p.style.left, y: p.style.top, w: p.style.width, h: p.style.height,
                     z: p.style.zIndex, title: p.querySelector('.post-it-title').value,
                     body: p.querySelector('.post-it-body').value
                 }));
 
-                appState.timer = {
+                persistedState.tasks = tasks;
+
+                persistedState.settings = {
+                    ...persistedState.settings,
+                    sound: currentSound,
+                    volume,
+                    autoFocus: autoFocusToggle.checked,
+                    autoBreak: autoBreakToggle.checked,
+                    scale: currentScale,
+                    sliderB: scales.B.focus,
+                    sliderC: scales.C.focus,
+                    cycleCount,
+                    pauseMode
+                };
+
+                persistedState.timer = {
                     currentScale,
                     currentState,
                     cycleCount,
@@ -1250,6 +1344,32 @@
                     lastSavedAt: Date.now()
                 };
 
+                persistedState.ui = {
+                    ...persistedState.ui,
+                    activeTab: document.querySelector('.tab-btn.active')?.dataset.tab || 'tarefas',
+                    leftPanelOpen: leftPanel.classList.contains('open'),
+                    rightPanelOpen: rightPanel.classList.contains('open'),
+                    mainTimerHidden: timerWrapper.classList.contains('hidden-time'),
+                    miniTimerHidden: recallBox.classList.contains('hidden-time'),
+                    floatingTimerOpen: popoutWindow && !popoutWindow.hidden,
+                    floatingTimerPosition: popoutWindow ? {
+                        left: popoutWindow.style.left || '',
+                        top: popoutWindow.style.top || '',
+                        right: popoutWindow.style.right || '',
+                        bottom: popoutWindow.style.bottom || ''
+                    } : null,
+                    filters: {
+                        status: Array.from(document.querySelectorAll('.filter-status:checked')).map(c => c.value),
+                        priority: Array.from(document.querySelectorAll('.filter-priority:checked')).map(c => c.value)
+                    }
+                };
+
+                persistedState.miniTimer = {
+                    timeLeft: miniTimeLeft,
+                    isRunning: miniIsRunning
+                };
+
+                appState = persistedState;
                 const dataStr = JSON.stringify(appState);
                 try {
                     localStorage.setItem('cadenciaState', dataStr);
@@ -1280,13 +1400,14 @@
             }
             
             try {
-                appState = JSON.parse(saved);
+                appState = normalizeAppState(JSON.parse(saved));
+                const state = appState;
                 
                 // Restaura Configurações
-                currentSound = appState.settings.sound || 'digital';
-                volume = appState.settings.volume || 0.5;
-                document.getElementById('auto-focus').checked = appState.settings.autoFocus || false;
-                document.getElementById('auto-break').checked = appState.settings.autoBreak || false;
+                currentSound = state.settings.sound || 'digital';
+                volume = state.settings.volume || 0.5;
+                document.getElementById('auto-focus').checked = state.settings.autoFocus || false;
+                document.getElementById('auto-break').checked = state.settings.autoBreak || false;
                 
                 document.querySelectorAll('.sound-option').forEach(o => {
                     o.classList.toggle('selected', o.dataset.sound === currentSound);
@@ -1294,41 +1415,30 @@
                 document.getElementById('volume-slider').value = volume * 100;
                 document.getElementById('volume-value').textContent = `${Math.round(volume * 100)}%`;
 
-                ambientSound = appState.settings.ambientSound || null;
-                ambientVolume = appState.settings.ambientVolume ?? 0.5;
-                document.getElementById('ambient-volume-slider').value = ambientVolume * 100;
-                document.getElementById('ambient-volume-value').textContent = `${Math.round(ambientVolume * 100)}%`;
-                document.querySelectorAll('.btn-ambient-toggle').forEach(btn => {
-                    btn.classList.toggle('active', ambientSound && btn.id === `ambient-${ambientSound}`);
-                });
-                if (ambientSound) {
-                    startAmbientSound(ambientSound);
-                }
-
                 // Restaura Escalas
-                scales.B.focus = appState.settings.sliderB || 25;
-                scales.C.focus = appState.settings.sliderC || 40;
-                cycleCount = appState.settings.cycleCount || 0;
-                pauseMode = appState.settings.pauseMode || false;
-                const savedScale = appState.settings.scale || 'A';
+                scales.B.focus = state.settings.sliderB || 25;
+                scales.C.focus = state.settings.sliderC || 40;
+                cycleCount = state.settings.cycleCount || 0;
+                pauseMode = state.settings.pauseMode || false;
+                const savedScale = state.settings.scale || 'A';
                 changeScale(savedScale, pauseMode, false);
 
-                if (appState.timer) {
-                    currentScale = appState.timer.currentScale || currentScale;
-                    currentState = appState.timer.currentState || currentState;
-                    cycleCount = appState.timer.cycleCount || cycleCount;
-                    pauseMode = appState.timer.pauseMode || pauseMode;
+                if (state.timer) {
+                    currentScale = state.timer.currentScale || currentScale;
+                    currentState = state.timer.currentState || currentState;
+                    cycleCount = state.timer.cycleCount || cycleCount;
+                    pauseMode = state.timer.pauseMode || pauseMode;
                     if (pauseMode && currentState === 'pause') btnPauseMode.classList.add('active');
 
-                    timeLeft = appState.timer.timeLeft ?? (currentState === 'focus' ? scales[currentScale].focus * 60 : currentState === 'long' ? scales[currentScale].long * 60 : scales[currentScale].short * 60);
-                    totalTime = appState.timer.totalTime ?? timeLeft;
+                    timeLeft = state.timer.timeLeft ?? (currentState === 'focus' ? scales[currentScale].focus * 60 : currentState === 'long' ? scales[currentScale].long * 60 : scales[currentScale].short * 60);
+                    totalTime = state.timer.totalTime ?? timeLeft;
 
-                    const elapsedSeconds = appState.timer.isRunning && appState.timer.lastSavedAt ? Math.floor((Date.now() - appState.timer.lastSavedAt) / 1000) : 0;
+                    const elapsedSeconds = state.timer.isRunning && state.timer.lastSavedAt ? Math.floor((Date.now() - state.timer.lastSavedAt) / 1000) : 0;
                     if (elapsedSeconds > 0) {
                         advanceTimerBy(elapsedSeconds);
                     }
 
-                    if (appState.timer.isRunning) {
+                    if (state.timer.isRunning) {
                         startTimer();
                     } else {
                         stopTimer();
@@ -1336,20 +1446,90 @@
                     }
                 }
                 cycleCounter.textContent = `Ciclo: ${cycleCount}/4`;
-                isRestoringState = false;
 
                 // Restaura Notas
-                document.getElementById('note-title').value = appState.notes.title || '';
-                document.getElementById('note-body').value = appState.notes.body || '';
+                document.getElementById('note-title').value = state.notes.title || '';
+                document.getElementById('note-body').value = state.notes.body || '';
 
                 // Restaura Tarefas
-                tasks = appState.tasks || [];
+                tasks = state.tasks || [];
+
+                // Restaura estado visual e filtros
+                const uiState = state.ui || {};
+                const activeTab = uiState.activeTab || 'tarefas';
+                document.querySelectorAll('.tab-btn').forEach(tab => {
+                    const isActive = tab.dataset.tab === activeTab;
+                    tab.classList.toggle('active', isActive);
+                });
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.toggle('active', content.id === `tab-${activeTab}`);
+                });
+
+                leftPanel.classList.toggle('open', Boolean(uiState.leftPanelOpen));
+                document.body.classList.toggle('left-open', Boolean(uiState.leftPanelOpen));
+                leftToggle.setAttribute('aria-expanded', uiState.leftPanelOpen ? 'true' : 'false');
+                leftToggle.innerHTML = uiState.leftPanelOpen ? '‹' : '›';
+                leftToggle.setAttribute('aria-label', uiState.leftPanelOpen ? 'Fechar painel de ferramentas' : 'Abrir painel de ferramentas');
+
+                rightPanel.classList.toggle('open', Boolean(uiState.rightPanelOpen));
+                document.body.classList.toggle('right-open', Boolean(uiState.rightPanelOpen));
+                rightToggle.setAttribute('aria-expanded', uiState.rightPanelOpen ? 'true' : 'false');
+                rightToggle.setAttribute('aria-label', uiState.rightPanelOpen ? 'Fechar configurações' : 'Abrir configurações');
+
+                if (uiState.mainTimerHidden) timerWrapper.classList.add('hidden-time');
+                else timerWrapper.classList.remove('hidden-time');
+                btnHideTimer.textContent = timerWrapper.classList.contains('hidden-time') ? 'Revelar' : 'Ocultar';
+
+                if (uiState.miniTimerHidden) recallBox.classList.add('hidden-time');
+                else recallBox.classList.remove('hidden-time');
+
+                if (popoutWindow) {
+                    const floatingPosition = uiState.floatingTimerPosition || {};
+                    popoutWindow.hidden = !uiState.floatingTimerOpen;
+                    popoutWindow.style.left = floatingPosition.left || '';
+                    popoutWindow.style.top = floatingPosition.top || '';
+                    popoutWindow.style.right = floatingPosition.right || '';
+                    popoutWindow.style.bottom = floatingPosition.bottom || '';
+                    if (!uiState.floatingTimerOpen) {
+                        timerWrapper.classList.remove('is-popout-open');
+                    } else {
+                        timerWrapper.classList.add('is-popout-open');
+                    }
+                }
+
+                if (uiState.miniTimerHidden) recallBox.classList.add('hidden-time');
+                else recallBox.classList.remove('hidden-time');
+                btnHideMini.textContent = recallBox.classList.contains('hidden-time') ? 'Revelar' : 'Ocultar';
+
+                document.querySelectorAll('.filter-status').forEach(check => {
+                    check.checked = (uiState.filters?.status || []).includes(check.value);
+                });
+                document.querySelectorAll('.filter-priority').forEach(check => {
+                    check.checked = (uiState.filters?.priority || []).includes(check.value);
+                });
+
                 renderTasks();
 
                 // Restaura Post-its
-                if (appState.postits) {
-                    appState.postits.forEach(p => createPostIt(parseFloat(p.x), parseFloat(p.y), p));
+                document.querySelectorAll('.post-it').forEach(postIt => postIt.remove());
+                if (state.postits) {
+                    state.postits.forEach(p => createPostIt(parseFloat(p.x), parseFloat(p.y), p));
                 }
+
+                // Restaura Mini Cronômetro
+                const savedMiniTimer = state.miniTimer || {};
+                miniTimeLeft = savedMiniTimer.timeLeft ?? 600;
+                miniIsRunning = savedMiniTimer.isRunning ?? false;
+                updateMiniDisplay();
+                if (miniIsRunning) {
+                    miniTimerInterval = setInterval(tickMini, 1000);
+                    btnMiniStart.textContent = 'Pausar';
+                } else {
+                    clearInterval(miniTimerInterval);
+                    btnMiniStart.textContent = 'Retomar';
+                }
+
+                isRestoringState = false;
 
             } catch (e) {
                 console.error("Erro ao carregar estado:", e);
@@ -1368,6 +1548,7 @@
             leftToggle.setAttribute('aria-expanded', isOpen);
             leftToggle.innerHTML = isOpen ? '‹' : '›';
             leftToggle.setAttribute('aria-label', isOpen ? 'Fechar painel de ferramentas' : 'Abrir painel de ferramentas');
+            saveState();
         });
 
         rightToggle.addEventListener('click', () => {
@@ -1375,106 +1556,16 @@
             document.body.classList.toggle('right-open', isOpen);
             rightToggle.setAttribute('aria-expanded', isOpen);
             rightToggle.setAttribute('aria-label', isOpen ? 'Fechar configurações' : 'Abrir configurações');
+            saveState();
         });
 
         // ====================== FASE 2: Sistema de Áudio ======================
         let audioContext = null;
         let currentSound = 'digital';
         let volume = 0.5;
-        let ambientSound = null;
-        let ambientVolume = 0.5;
-        let ambientNodes = null;
 
         function initAudioContext() {
             if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        }
-
-        function setAmbientVolume(value) {
-            ambientVolume = value;
-            if (ambientNodes && ambientNodes.gain) {
-                ambientNodes.gain.gain.value = ambientVolume;
-            }
-            document.getElementById('ambient-volume-value').textContent = `${Math.round(value * 100)}%`;
-            appState.settings.ambientVolume = ambientVolume;
-            saveState();
-        }
-
-        function stopAmbientSound() {
-            if (!ambientNodes) return;
-            if (ambientNodes.source) ambientNodes.source.stop();
-            if (ambientNodes.lfo) ambientNodes.lfo.stop();
-            if (ambientNodes.noiseBuffer) ambientNodes.noiseBuffer.disconnect();
-            if (ambientNodes.filter) ambientNodes.filter.disconnect();
-            if (ambientNodes.gain) ambientNodes.gain.disconnect();
-            ambientNodes = null;
-        }
-
-        function startAmbientSound(type) {
-            initAudioContext();
-            if (!audioContext) return;
-            stopAmbientSound();
-            const gain = audioContext.createGain();
-            gain.gain.value = ambientVolume;
-            gain.connect(audioContext.destination);
-            ambientNodes = { gain };
-
-            if (type === 'noise' || type === 'rain') {
-                const buffer = audioContext.createBuffer(1, audioContext.sampleRate * 2, audioContext.sampleRate);
-                const data = buffer.getChannelData(0);
-                for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
-                const source = audioContext.createBufferSource();
-                source.buffer = buffer;
-                source.loop = true;
-                ambientNodes.source = source;
-
-                if (type === 'rain') {
-                    const filter = audioContext.createBiquadFilter();
-                    filter.type = 'lowpass';
-                    filter.frequency.value = 1000;
-                    source.connect(filter);
-                    filter.connect(gain);
-                    ambientNodes.filter = filter;
-                } else {
-                    source.connect(gain);
-                }
-                source.start();
-            } else if (type === 'lofi') {
-                const carrier = audioContext.createOscillator();
-                carrier.type = 'sine';
-                carrier.frequency.value = 60;
-                const carrierGain = audioContext.createGain();
-                carrierGain.gain.value = 0.15;
-                carrier.connect(carrierGain);
-                carrierGain.connect(gain);
-                const lfo = audioContext.createOscillator();
-                lfo.type = 'sine';
-                lfo.frequency.value = 0.25;
-                const lfoGain = audioContext.createGain();
-                lfoGain.gain.value = 20;
-                lfo.connect(lfoGain);
-                lfoGain.connect(carrier.frequency);
-                carrier.start();
-                lfo.start();
-                ambientNodes.source = carrier;
-                ambientNodes.lfo = lfo;
-            }
-
-            ambientSound = type;
-            appState.settings.ambientSound = ambientSound;
-            saveState();
-            document.querySelectorAll('.btn-ambient-toggle').forEach(btn => btn.classList.toggle('active', btn.id === `ambient-${type}`));
-        }
-
-        function toggleAmbientSound(type) {
-            if (ambientSound === type) {
-                stopAmbientSound();
-                ambientSound = null;
-                appState.settings.ambientSound = null;
-                document.querySelectorAll('.btn-ambient-toggle').forEach(btn => btn.classList.remove('active'));
-                saveState();
-                return;
-            }
-            startAmbientSound(type);
         }
 
         function playSound() {
@@ -1538,25 +1629,12 @@
 
         const volumeSlider = document.getElementById('volume-slider');
         const volumeValue = document.getElementById('volume-value');
-        const ambientNoiseBtn = document.getElementById('ambient-noise');
-        const ambientRainBtn = document.getElementById('ambient-rain');
-        const ambientLofiBtn = document.getElementById('ambient-lofi');
-        const ambientVolumeSlider = document.getElementById('ambient-volume-slider');
-
         volumeSlider.addEventListener('input', (e) => {
             volume = e.target.value / 100;
             volumeValue.textContent = `${e.target.value}%`;
             appState.settings.volume = volume;
             saveState();
         });
-
-        ambientVolumeSlider.addEventListener('input', (e) => {
-            setAmbientVolume(e.target.value / 100);
-        });
-
-        ambientNoiseBtn.addEventListener('click', () => toggleAmbientSound('noise'));
-        ambientRainBtn.addEventListener('click', () => toggleAmbientSound('rain'));
-        ambientLofiBtn.addEventListener('click', () => toggleAmbientSound('lofi'));
 
         const autoFocusToggle = document.getElementById('auto-focus');
         const autoBreakToggle = document.getElementById('auto-break');
@@ -1592,17 +1670,30 @@
         const btnStart = document.getElementById('btn-start');
         const btnReset = document.getElementById('btn-reset');
         const btnHideTimer = document.getElementById('btn-hide-timer');
+        const btnPopoutTimer = document.getElementById('btn-popout-timer');
         const btnPauseMode = document.getElementById('btn-pause-mode');
         const btnCycleDecrease = document.getElementById('btn-cycle-decrease');
         const btnCycleIncrease = document.getElementById('btn-cycle-increase');
-        const btnScaleInfo = document.getElementById('btn-scale-info');
-        const scaleInfoPanel = document.getElementById('scale-info-panel');
+        const cycleStatus = document.getElementById('cycle-status');
         const timerWrapper = document.querySelector('.timer-wrapper');
 
         const radius = 140;
         const circumference = 2 * Math.PI * radius;
         progressRing.style.strokeDasharray = circumference;
         progressRing.style.strokeDashoffset = 0;
+
+        const popoutWindow = document.getElementById('timer-popout');
+        const popoutProgressRing = document.getElementById('popout-progress-ring');
+        const popoutTimerText = document.getElementById('popout-timer-text');
+        const popoutSessionName = document.getElementById('popout-session-name');
+        const popoutCloseBtn = document.getElementById('popout-close-btn');
+        const popoutHideBtn = document.getElementById('popout-hide-btn');
+        const popoutRadius = 54;
+        const popoutCircumference = 2 * Math.PI * popoutRadius;
+        if (popoutProgressRing) {
+            popoutProgressRing.style.strokeDasharray = popoutCircumference;
+            popoutProgressRing.style.strokeDashoffset = 0;
+        }
 
         function formatTime(seconds) {
             const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -1612,7 +1703,7 @@
 
         function updateDisplay() {
             timerText.textContent = formatTime(timeLeft);
-            const progress = timeLeft / totalTime;
+            const progress = totalTime > 0 ? timeLeft / totalTime : 0;
             const offset = circumference * (1 - progress);
             progressRing.style.strokeDashoffset = offset;
 
@@ -1632,6 +1723,17 @@
             sessionName.style.color = textColor;
             progressRing.style.stroke = ringColor;
             cycleCounter.textContent = `Ciclo: ${cycleCount}/4`;
+            if (cycleStatus) cycleStatus.textContent = `Ciclo atual: ${cycleCount}/4`;
+
+            if (popoutProgressRing) {
+                const popoutOffset = popoutCircumference * (1 - progress);
+                popoutProgressRing.style.strokeDashoffset = popoutOffset;
+                popoutProgressRing.style.stroke = ringColor;
+                popoutTimerText.textContent = formatTime(timeLeft);
+                popoutSessionName.textContent = name;
+                popoutSessionName.style.color = textColor;
+                popoutTimerText.style.color = textColor;
+            }
         }
 
         function changeScale(scale, keepPause = false, shouldSave = true) {
@@ -1793,18 +1895,6 @@
             showConfirmation('pause');
         });
 
-        if (btnScaleInfo && scaleInfoPanel) {
-            btnScaleInfo.addEventListener('click', (e) => {
-                e.stopPropagation();
-                scaleInfoPanel.classList.toggle('show');
-            });
-            document.addEventListener('click', (e) => {
-                if (!scaleInfoPanel.contains(e.target) && e.target !== btnScaleInfo) {
-                    scaleInfoPanel.classList.remove('show');
-                }
-            });
-        }
-
         btnConfirmAction.addEventListener('click', () => {
             if (confirmAction === 'reset') {
                 stopTimer();
@@ -1832,23 +1922,19 @@
             hideConfirmation();
         });
 
-        if (btnCycleDecrease) {
-            btnCycleDecrease.addEventListener('click', () => {
-                cycleCount = Math.max(0, cycleCount - 1);
-                appState.settings.cycleCount = cycleCount;
-                saveState();
-                updateDisplay();
-            });
-        }
+        btnCycleDecrease.addEventListener('click', () => {
+            cycleCount = Math.max(0, cycleCount - 1);
+            appState.settings.cycleCount = cycleCount;
+            saveState();
+            updateDisplay();
+        });
 
-        if (btnCycleIncrease) {
-            btnCycleIncrease.addEventListener('click', () => {
-                cycleCount = Math.min(4, cycleCount + 1);
-                appState.settings.cycleCount = cycleCount;
-                saveState();
-                updateDisplay();
-            });
-        }
+        btnCycleIncrease.addEventListener('click', () => {
+            cycleCount = Math.min(4, cycleCount + 1);
+            appState.settings.cycleCount = cycleCount;
+            saveState();
+            updateDisplay();
+        });
 
         scaleBtn.addEventListener('click', (e) => { e.stopPropagation(); scaleDropdown.classList.toggle('show'); });
         document.addEventListener('click', () => { scaleDropdown.classList.remove('show'); });
@@ -1867,16 +1953,79 @@
             saveState();
         });
 
-        // FASE 8: Ocultar/Revelar Tempo Principal
-        if (btnHideTimer && timerWrapper) {
-            btnHideTimer.addEventListener('click', () => {
-                const isHidden = timerWrapper.classList.toggle('hidden-time');
-                btnHideTimer.textContent = isHidden ? 'Revelar' : 'Ocultar';
-                if (isHidden) {
-                    timerWrapper.setAttribute('aria-hidden', 'true');
-                } else {
-                    timerWrapper.removeAttribute('aria-hidden');
-                }
+        function toggleTimerVisibility() {
+            const isPopoutOpen = popoutWindow && !popoutWindow.hidden;
+            const isHidden = isPopoutOpen
+                ? popoutWindow.classList.toggle('hidden-time')
+                : timerWrapper.classList.toggle('hidden-time');
+            btnHideTimer.textContent = isHidden ? 'Revelar' : 'Ocultar';
+            if (popoutHideBtn) popoutHideBtn.textContent = isHidden ? 'Revelar' : 'Ocultar';
+            saveState();
+        }
+
+        if (btnHideTimer) {
+            btnHideTimer.addEventListener('click', toggleTimerVisibility);
+        }
+
+        if (popoutHideBtn) {
+            popoutHideBtn.addEventListener('click', toggleTimerVisibility);
+        }
+
+        function openPopoutTimer() {
+            if (!popoutWindow) return;
+            const shouldHide = timerWrapper.classList.contains('hidden-time');
+            popoutWindow.hidden = false;
+            timerWrapper.classList.add('is-popout-open');
+            popoutWindow.classList.toggle('hidden-time', shouldHide);
+            popoutHideBtn.textContent = shouldHide ? 'Revelar' : 'Ocultar';
+            if (!popoutWindow.style.left && !popoutWindow.style.top) {
+                popoutWindow.style.right = '20px';
+                popoutWindow.style.bottom = '20px';
+                popoutWindow.style.left = '';
+                popoutWindow.style.top = '';
+            }
+            updateDisplay();
+            saveState();
+        }
+
+        function closePopoutTimer() {
+            if (!popoutWindow) return;
+            popoutWindow.hidden = true;
+            timerWrapper.classList.remove('is-popout-open');
+            updateDisplay();
+            saveState();
+        }
+
+        if (btnPopoutTimer) {
+            btnPopoutTimer.addEventListener('click', openPopoutTimer);
+        }
+
+        if (popoutCloseBtn) {
+            popoutCloseBtn.addEventListener('click', closePopoutTimer);
+        }
+
+        if (popoutWindow) {
+            popoutWindow.addEventListener('pointerdown', (e) => {
+                if (e.target.closest('button')) return;
+                const startX = e.clientX;
+                const startY = e.clientY;
+                const startLeft = popoutWindow.offsetLeft;
+                const startTop = popoutWindow.offsetTop;
+                const onMove = (ev) => {
+                    const nextLeft = Math.max(12, Math.min(window.innerWidth - popoutWindow.offsetWidth - 12, startLeft + ev.clientX - startX));
+                    const nextTop = Math.max(12, Math.min(window.innerHeight - popoutWindow.offsetHeight - 12, startTop + ev.clientY - startY));
+                    popoutWindow.style.left = `${nextLeft}px`;
+                    popoutWindow.style.top = `${nextTop}px`;
+                    popoutWindow.style.right = 'auto';
+                    popoutWindow.style.bottom = 'auto';
+                };
+                const onUp = () => {
+                    document.removeEventListener('pointermove', onMove);
+                    document.removeEventListener('pointerup', onUp);
+                    saveState();
+                };
+                document.addEventListener('pointermove', onMove);
+                document.addEventListener('pointerup', onUp);
             });
         }
 
@@ -1892,6 +2041,7 @@
                 tab.classList.add('active');
                 tabContents.forEach(c => c.classList.remove('active'));
                 document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+                saveState();
             });
         });
 
@@ -2049,7 +2199,10 @@
         }
 
         document.querySelectorAll('.filter-status, .filter-priority').forEach(check => {
-            check.addEventListener('change', renderTasks);
+            check.addEventListener('change', () => {
+                renderTasks();
+                saveState();
+            });
         });
 
         // ====================== FASE 4: Bloco de Notas ======================
@@ -2102,12 +2255,14 @@
             if (miniTimeLeft > 0) {
                 miniTimeLeft--;
                 updateMiniDisplay();
+                saveState();
             } else {
                 clearInterval(miniTimerInterval);
                 miniIsRunning = false;
                 btnMiniStart.textContent = 'Iniciar';
                 miniTimeLeft = 600;
                 updateMiniDisplay();
+                saveState();
                 playSound();
                 alert("Prática de Recuperação concluída!");
             }
@@ -2124,12 +2279,14 @@
                 miniIsRunning = true;
                 btnMiniStart.textContent = 'Pausar';
             }
+            saveState();
         });
 
         // FASE 8: Ocultar/Revelar Mini Cronômetro
         btnHideMini.addEventListener('click', () => {
             const isHidden = recallBox.classList.toggle('hidden-time');
             btnHideMini.textContent = isHidden ? 'Revelar' : 'Ocultar';
+            saveState();
         });
 
         // ====================== FASE 5: Mapa Mental ======================
