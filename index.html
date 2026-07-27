@@ -331,9 +331,12 @@
         .popup-shell {
             display: none;
             position: fixed;
-            inset: auto 20px 20px auto;
+            inset: 0;
             z-index: 50;
             pointer-events: none;
+            align-items: flex-end;
+            justify-content: flex-end;
+            padding: 20px;
         }
 
         body.popup-mode .popup-shell {
@@ -342,7 +345,10 @@
 
         .popup-card {
             width: clamp(120px, 24vw, 170px);
+            min-width: 110px;
             aspect-ratio: 1;
+            max-width: min(40vw, 240px);
+            max-height: min(40vw, 240px);
             background: rgba(255,255,255,0.97);
             border: 1px solid rgba(31, 107, 103, 0.18);
             border-radius: 18px;
@@ -354,6 +360,8 @@
             justify-content: center;
             gap: 8px;
             pointer-events: auto;
+            resize: both;
+            overflow: auto;
         }
 
         .popup-card .popup-header {
@@ -1804,9 +1812,28 @@
             document.documentElement.style.setProperty('--popup-scale', scale.toFixed(3));
         }
 
-        window.addEventListener('resize', updatePopupScale);
-        window.addEventListener('load', updatePopupScale);
+        function syncPopupState() {
+            if (!popupShell || !popupTimerText) return;
+            const popupValue = formatTime(timeLeft);
+            popupTimerText.textContent = popupValue;
+            popupTimerText.style.fontSize = `${clamp(Math.max(18, Math.min(44, Math.round((popupShell.offsetWidth || 140) * 0.34))), 18, 44)}px`;
+            popupTimerText.style.lineHeight = '1';
+        }
+
+        function clamp(value, min, max) {
+            return Math.min(max, Math.max(min, value));
+        }
+
+        window.addEventListener('resize', () => {
+            updatePopupScale();
+            syncPopupState();
+        });
+        window.addEventListener('load', () => {
+            updatePopupScale();
+            syncPopupState();
+        });
         updatePopupScale();
+        syncPopupState();
 
         const popupShell = document.getElementById('popup-shell');
         const popupProgressRing = document.getElementById('popup-progress-ring');
@@ -1853,18 +1880,21 @@
             if (cycleStatus) cycleStatus.textContent = `Ciclo atual: ${cycleCount}/4`;
 
             if (popupProgressRing) {
-                const popupOffset = popupCircumference * (1 - progress);
-                popupProgressRing.style.strokeDashoffset = popupOffset;
+                popupProgressRing.style.strokeDashoffset = popupCircumference * (1 - progress);
                 popupProgressRing.style.stroke = ringColor;
+            }
+            if (popupTimerText) {
                 popupTimerText.textContent = formatTime(timeLeft);
-                popupSessionName.textContent = name;
-                popupSessionName.style.color = textColor;
                 popupTimerText.style.color = textColor;
             }
-
+            if (popupSessionName) {
+                popupSessionName.textContent = '';
+                popupSessionName.style.color = textColor;
+            }
             if (popupStartBtn) {
                 popupStartBtn.textContent = isRunning ? 'Pausar' : 'Iniciar';
             }
+            syncPopupState();
         }
 
         function changeScale(scale, keepPause = false, shouldSave = true) {
@@ -2101,9 +2131,16 @@
 
         let popoutWindow = null;
 
+        function resetPopupRuntimeState() {
+            if (popoutWindow && !popoutWindow.closed) {
+                popoutWindow.postMessage({ type: 'cadenciaResetPopup' }, '*');
+            }
+        }
+
         function openPopoutTimer() {
             if (popoutWindow && !popoutWindow.closed) {
                 popoutWindow.focus();
+                popoutWindow.postMessage({ type: 'cadenciaStateUpdated', state: appState }, '*');
                 saveState();
                 return;
             }
@@ -2129,6 +2166,15 @@
         }
 
         window.addEventListener('message', (event) => {
+            if (event.data?.type === 'cadenciaResetPopup') {
+                if (popoutWindow && !popoutWindow.closed) {
+                    popoutWindow.close();
+                }
+                popoutWindow = null;
+                appState.ui.floatingTimerOpen = false;
+                saveState();
+                return;
+            }
             if (event.data?.type === 'cadenciaStateUpdated' && event.data.state) {
                 appState = normalizeAppState(event.data.state);
                 localStorage.setItem('cadenciaState', JSON.stringify(appState));
@@ -2145,6 +2191,14 @@
                 window.close();
             });
         }
+
+        window.addEventListener('beforeunload', () => {
+            if (window.opener && !window.opener.closed) {
+                window.opener.popoutWindow = null;
+                window.opener.appState.ui.floatingTimerOpen = false;
+                window.opener.saveState?.();
+            }
+        });
 
         if (popupStartBtn) {
             popupStartBtn.addEventListener('click', () => {
