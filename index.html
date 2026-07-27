@@ -284,6 +284,20 @@
         .confirm-panel.show {
             display: flex;
         }
+        .confirm-panel.confirm-inline {
+            margin-top: 0;
+            width: max-content;
+            min-width: 190px;
+            max-width: 220px;
+            align-items: center;
+            justify-content: center;
+        }
+        .inline-confirm-wrap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+        }
         .confirm-panel .confirm-text {
             font-size: 1rem;
             color: #9f2a2a;
@@ -1219,13 +1233,15 @@
             </div>
             <div class="cycle-section">
                 <div id="cycle-counter" class="cycle-counter">Ciclo: 0/4</div>
-                <button id="btn-pause-mode" class="btn-secondary btn-pause-toggle">Fazer uma pausa</button>
-            </div>
-            <div id="pause-confirmation" class="confirm-panel" aria-live="polite">
-                <span class="confirm-text">Isso zerará o cronômetro.</span>
-                <div class="confirm-buttons">
-                    <button id="btn-confirm-action" type="button" class="btn-secondary btn-danger">Tem certeza?</button>
-                    <button id="btn-cancel-confirm" type="button" class="btn-secondary">Não</button>
+                <div class="inline-confirm-wrap">
+                    <button id="btn-pause-mode" class="btn-secondary btn-pause-toggle">Fazer uma pausa</button>
+                    <div id="pause-confirmation" class="confirm-panel confirm-inline" aria-live="polite">
+                        <span class="confirm-text">Deseja fazer uma pausa?</span>
+                        <div class="confirm-buttons">
+                            <button id="btn-confirm-pause" type="button" class="btn-secondary btn-danger">Sim</button>
+                            <button id="btn-cancel-pause" type="button" class="btn-secondary">Não</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1248,7 +1264,16 @@
 
         <div class="timer-btn-group">
             <button id="btn-start" class="btn-start">Iniciar</button>
-            <button id="btn-reset" class="btn-secondary">Zerar</button>
+            <div class="inline-confirm-wrap">
+                <button id="btn-reset" class="btn-secondary">Zerar</button>
+                <div id="reset-confirmation" class="confirm-panel confirm-inline" aria-live="polite">
+                    <span class="confirm-text">Deseja zerar o cronômetro?</span>
+                    <div class="confirm-buttons">
+                        <button id="btn-confirm-reset" type="button" class="btn-secondary btn-danger">Sim</button>
+                        <button id="btn-cancel-reset" type="button" class="btn-secondary">Não</button>
+                    </div>
+                </div>
+            </div>
             <button id="btn-hide-timer" class="btn-secondary btn-hide-timer">Ocultar</button>
         </div>
     </main>
@@ -2041,62 +2066,73 @@
             if (isRunning) stopTimer(); else startTimer();
         });
 
-        let confirmAction = null;
         const pauseConfirmation = document.getElementById('pause-confirmation');
-        const btnConfirmAction = document.getElementById('btn-confirm-action');
-        const btnCancelConfirm = document.getElementById('btn-cancel-confirm');
+        const resetConfirmation = document.getElementById('reset-confirmation');
+        const btnConfirmPause = document.getElementById('btn-confirm-pause');
+        const btnCancelPause = document.getElementById('btn-cancel-pause');
+        const btnConfirmReset = document.getElementById('btn-confirm-reset');
+        const btnCancelReset = document.getElementById('btn-cancel-reset');
 
-        function showConfirmation(action) {
-            confirmAction = action;
-            pauseConfirmation.classList.add('show');
-            btnConfirmAction.textContent = 'Tem certeza?';
-            btnConfirmAction.classList.add('btn-danger');
-            btnCancelConfirm.textContent = 'Não';
+        function showPauseConfirmation() {
+            hideResetConfirmation();
             btnPauseMode.classList.add('hidden');
-            btnReset.classList.add('hidden');
+            pauseConfirmation.classList.add('show');
         }
 
-        function hideConfirmation() {
-            confirmAction = null;
+        function hidePauseConfirmation() {
             pauseConfirmation.classList.remove('show');
             btnPauseMode.classList.remove('hidden');
+        }
+
+        function showResetConfirmation() {
+            hidePauseConfirmation();
+            btnReset.classList.add('hidden');
+            resetConfirmation.classList.add('show');
+        }
+
+        function hideResetConfirmation() {
+            resetConfirmation.classList.remove('show');
             btnReset.classList.remove('hidden');
-            btnConfirmAction.classList.remove('btn-danger');
         }
 
         btnReset.addEventListener('click', () => {
-            showConfirmation('reset');
+            showResetConfirmation();
         });
 
         btnPauseMode.addEventListener('click', () => {
-            showConfirmation('pause');
+            showPauseConfirmation();
         });
 
-        btnConfirmAction.addEventListener('click', () => {
-            if (confirmAction === 'reset') {
-                stopTimer();
-                if (pauseMode) setTimerState('pause');
-                else setTimerState(currentState);
-                btnStart.textContent = 'Iniciar';
-            } else if (confirmAction === 'pause') {
-                pauseMode = !pauseMode;
-                stopTimer();
-                if (pauseMode) {
-                    btnPauseMode.classList.add('active');
-                    setTimerState('pause');
-                } else {
-                    btnPauseMode.classList.remove('active');
-                    setTimerState('focus');
-                }
-                btnStart.textContent = 'Iniciar';
-                appState.settings.pauseMode = pauseMode;
-                saveState();
+        btnConfirmPause.addEventListener('click', () => {
+            pauseMode = !pauseMode;
+            stopTimer();
+            if (pauseMode) {
+                btnPauseMode.classList.add('active');
+                setTimerState('pause');
+            } else {
+                btnPauseMode.classList.remove('active');
+                setTimerState('focus');
             }
-            hideConfirmation();
+            btnStart.textContent = 'Iniciar';
+            appState.settings.pauseMode = pauseMode;
+            saveState();
+            hidePauseConfirmation();
         });
 
-        btnCancelConfirm.addEventListener('click', () => {
-            hideConfirmation();
+        btnCancelPause.addEventListener('click', () => {
+            hidePauseConfirmation();
+        });
+
+        btnConfirmReset.addEventListener('click', () => {
+            stopTimer();
+            if (pauseMode) setTimerState('pause');
+            else setTimerState(currentState);
+            btnStart.textContent = 'Iniciar';
+            hideResetConfirmation();
+        });
+
+        btnCancelReset.addEventListener('click', () => {
+            hideResetConfirmation();
         });
 
         btnCycleDecrease.addEventListener('click', () => {
