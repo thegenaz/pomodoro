@@ -810,10 +810,6 @@
             <div id="tab-tarefas" class="tab-content active">
                 <div class="task-controls">
                     <button id="btn-show-form" type="button" class="btn-add-task"><span>+</span> Adicionar tarefa</button>
-                    <div class="cycle-adjust-group">
-                        <button id="btn-cycle-decrease" type="button" class="btn-secondary btn-cycle">-</button>
-                        <button id="btn-cycle-increase" type="button" class="btn-secondary btn-cycle">+</button>
-                    </div>
                     <button id="btn-show-filters" type="button" class="filter-btn" aria-label="Mostrar filtros">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line>
@@ -955,6 +951,7 @@
         <div class="timer-btn-group">
             <button id="btn-start" class="btn-start">Iniciar</button>
             <button id="btn-reset" class="btn-secondary">Zerar</button>
+            <button id="btn-hide-timer" class="btn-secondary btn-hide-timer">Ocultar</button>
         </div>
     </main>
 
@@ -985,6 +982,14 @@
                     <span id="volume-value" style="font-size: 0.85rem; color: #666;">50%</span>
                 </div>
                 <input type="range" id="volume-slider" class="volume-slider" min="0" max="100" value="50">
+            </div>
+            <div class="settings-group">
+                <h3>CICLOS</h3>
+                <div class="setting-item cycle-settings">
+                    <button id="btn-cycle-decrease" type="button" class="btn-secondary btn-control-cycle">Diminuir ciclo</button>
+                    <span id="cycle-status" class="cycle-status">Ciclo atual: 0/4</span>
+                    <button id="btn-cycle-increase" type="button" class="btn-secondary btn-control-cycle">Aumentar ciclo</button>
+                </div>
             </div>
         </div>
     </aside>
@@ -1320,9 +1325,11 @@
         const sessionName = document.getElementById('session-name');
         const btnStart = document.getElementById('btn-start');
         const btnReset = document.getElementById('btn-reset');
+        const btnHideTimer = document.getElementById('btn-hide-timer');
         const btnPauseMode = document.getElementById('btn-pause-mode');
         const btnCycleDecrease = document.getElementById('btn-cycle-decrease');
         const btnCycleIncrease = document.getElementById('btn-cycle-increase');
+        const cycleStatus = document.getElementById('cycle-status');
         const timerWrapper = document.querySelector('.timer-wrapper');
 
         const radius = 140;
@@ -1358,6 +1365,7 @@
             sessionName.style.color = textColor;
             progressRing.style.stroke = ringColor;
             cycleCounter.textContent = `Ciclo: ${cycleCount}/4`;
+            if (cycleStatus) cycleStatus.textContent = `Ciclo atual: ${cycleCount}/4`;
         }
 
         function changeScale(scale, keepPause = false, shouldSave = true) {
@@ -1542,11 +1550,12 @@
         });
 
         // FASE 8: Ocultar/Revelar Tempo Principal
-        const btnHideTimer = document.getElementById('btn-hide-timer');
-        btnHideTimer.addEventListener('click', () => {
-            const isHidden = timerWrapper.classList.toggle('hidden-time');
-            btnHideTimer.textContent = isHidden ? 'Revelar' : 'Ocultar';
-        });
+        if (btnHideTimer) {
+            btnHideTimer.addEventListener('click', () => {
+                const isHidden = timerWrapper.classList.toggle('hidden-time');
+                btnHideTimer.textContent = isHidden ? 'Revelar' : 'Ocultar';
+            });
+        }
 
         // ====================== FASE 3: Painel Tarefas ======================
         let tasks = [];
