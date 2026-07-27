@@ -1121,6 +1121,19 @@
                 <input type="range" id="volume-slider" class="volume-slider" min="0" max="100" value="50">
             </div>
             <div class="settings-group">
+                <h3>Som Ambiente</h3>
+                <div class="setting-item ambient-options">
+                    <button id="ambient-noise" type="button" class="btn-secondary btn-ambient-toggle">Ruído</button>
+                    <button id="ambient-rain" type="button" class="btn-secondary btn-ambient-toggle">Chuva</button>
+                    <button id="ambient-lofi" type="button" class="btn-secondary btn-ambient-toggle">Lo-Fi</button>
+                </div>
+                <div class="setting-item" style="margin-top: 1rem;">
+                    <label for="ambient-volume-slider">Volume ambiente</label>
+                    <span id="ambient-volume-value" style="font-size: 0.85rem; color: #666;">50%</span>
+                </div>
+                <input type="range" id="ambient-volume-slider" class="volume-slider" min="0" max="100" value="50">
+            </div>
+            <div class="settings-group">
                 <h3>CICLOS</h3>
                 <div class="setting-item cycle-settings">
                     <button id="btn-cycle-decrease" type="button" class="btn-secondary btn-control-cycle">Diminuir ciclo</button>
@@ -1146,6 +1159,8 @@
             settings: {
                 sound: 'digital',
                 volume: 0.5,
+                ambientSound: null,
+                ambientVolume: 0.5,
                 autoFocus: false,
                 autoBreak: false,
                 scale: 'A',
@@ -1279,6 +1294,17 @@
                 document.getElementById('volume-slider').value = volume * 100;
                 document.getElementById('volume-value').textContent = `${Math.round(volume * 100)}%`;
 
+                ambientSound = appState.settings.ambientSound || null;
+                ambientVolume = appState.settings.ambientVolume ?? 0.5;
+                document.getElementById('ambient-volume-slider').value = ambientVolume * 100;
+                document.getElementById('ambient-volume-value').textContent = `${Math.round(ambientVolume * 100)}%`;
+                document.querySelectorAll('.btn-ambient-toggle').forEach(btn => {
+                    btn.classList.toggle('active', ambientSound && btn.id === `ambient-${ambientSound}`);
+                });
+                if (ambientSound) {
+                    startAmbientSound(ambientSound);
+                }
+
                 // Restaura Escalas
                 scales.B.focus = appState.settings.sliderB || 25;
                 scales.C.focus = appState.settings.sliderC || 40;
@@ -1355,9 +1381,100 @@
         let audioContext = null;
         let currentSound = 'digital';
         let volume = 0.5;
+        let ambientSound = null;
+        let ambientVolume = 0.5;
+        let ambientNodes = null;
 
         function initAudioContext() {
             if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function setAmbientVolume(value) {
+            ambientVolume = value;
+            if (ambientNodes && ambientNodes.gain) {
+                ambientNodes.gain.gain.value = ambientVolume;
+            }
+            document.getElementById('ambient-volume-value').textContent = `${Math.round(value * 100)}%`;
+            appState.settings.ambientVolume = ambientVolume;
+            saveState();
+        }
+
+        function stopAmbientSound() {
+            if (!ambientNodes) return;
+            if (ambientNodes.source) ambientNodes.source.stop();
+            if (ambientNodes.lfo) ambientNodes.lfo.stop();
+            if (ambientNodes.noiseBuffer) ambientNodes.noiseBuffer.disconnect();
+            if (ambientNodes.filter) ambientNodes.filter.disconnect();
+            if (ambientNodes.gain) ambientNodes.gain.disconnect();
+            ambientNodes = null;
+        }
+
+        function startAmbientSound(type) {
+            initAudioContext();
+            if (!audioContext) return;
+            stopAmbientSound();
+            const gain = audioContext.createGain();
+            gain.gain.value = ambientVolume;
+            gain.connect(audioContext.destination);
+            ambientNodes = { gain };
+
+            if (type === 'noise' || type === 'rain') {
+                const buffer = audioContext.createBuffer(1, audioContext.sampleRate * 2, audioContext.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+                const source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                source.loop = true;
+                ambientNodes.source = source;
+
+                if (type === 'rain') {
+                    const filter = audioContext.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.value = 1000;
+                    source.connect(filter);
+                    filter.connect(gain);
+                    ambientNodes.filter = filter;
+                } else {
+                    source.connect(gain);
+                }
+                source.start();
+            } else if (type === 'lofi') {
+                const carrier = audioContext.createOscillator();
+                carrier.type = 'sine';
+                carrier.frequency.value = 60;
+                const carrierGain = audioContext.createGain();
+                carrierGain.gain.value = 0.15;
+                carrier.connect(carrierGain);
+                carrierGain.connect(gain);
+                const lfo = audioContext.createOscillator();
+                lfo.type = 'sine';
+                lfo.frequency.value = 0.25;
+                const lfoGain = audioContext.createGain();
+                lfoGain.gain.value = 20;
+                lfo.connect(lfoGain);
+                lfoGain.connect(carrier.frequency);
+                carrier.start();
+                lfo.start();
+                ambientNodes.source = carrier;
+                ambientNodes.lfo = lfo;
+            }
+
+            ambientSound = type;
+            appState.settings.ambientSound = ambientSound;
+            saveState();
+            document.querySelectorAll('.btn-ambient-toggle').forEach(btn => btn.classList.toggle('active', btn.id === `ambient-${type}`));
+        }
+
+        function toggleAmbientSound(type) {
+            if (ambientSound === type) {
+                stopAmbientSound();
+                ambientSound = null;
+                appState.settings.ambientSound = null;
+                document.querySelectorAll('.btn-ambient-toggle').forEach(btn => btn.classList.remove('active'));
+                saveState();
+                return;
+            }
+            startAmbientSound(type);
         }
 
         function playSound() {
@@ -1421,12 +1538,25 @@
 
         const volumeSlider = document.getElementById('volume-slider');
         const volumeValue = document.getElementById('volume-value');
+        const ambientNoiseBtn = document.getElementById('ambient-noise');
+        const ambientRainBtn = document.getElementById('ambient-rain');
+        const ambientLofiBtn = document.getElementById('ambient-lofi');
+        const ambientVolumeSlider = document.getElementById('ambient-volume-slider');
+
         volumeSlider.addEventListener('input', (e) => {
             volume = e.target.value / 100;
             volumeValue.textContent = `${e.target.value}%`;
             appState.settings.volume = volume;
             saveState();
         });
+
+        ambientVolumeSlider.addEventListener('input', (e) => {
+            setAmbientVolume(e.target.value / 100);
+        });
+
+        ambientNoiseBtn.addEventListener('click', () => toggleAmbientSound('noise'));
+        ambientRainBtn.addEventListener('click', () => toggleAmbientSound('rain'));
+        ambientLofiBtn.addEventListener('click', () => toggleAmbientSound('lofi'));
 
         const autoFocusToggle = document.getElementById('auto-focus');
         const autoBreakToggle = document.getElementById('auto-break');
