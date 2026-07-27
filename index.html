@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1F6B67">
+    <link rel="manifest" href="manifest.json">
     <title>Cadência - Site de Estudos</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -453,6 +455,11 @@
         }
         .filter-btn:hover { border-color: #aaa; }
         .filter-btn.active { color: var(--petroleo); border-color: var(--petroleo); }
+        .btn-secondary.active {
+            background: var(--petroleo);
+            color: white;
+            border-color: var(--petroleo);
+        }
 
         .task-form, .filter-panel {
             display: none;
@@ -802,8 +809,12 @@
             <!-- Conteúdo Tarefas -->
             <div id="tab-tarefas" class="tab-content active">
                 <div class="task-controls">
-                    <button id="btn-show-form" class="btn-add-task"><span>+</span> Adicionar tarefa</button>
-                    <button id="btn-show-filters" class="filter-btn" aria-label="Mostrar filtros">
+                    <button id="btn-show-form" type="button" class="btn-add-task"><span>+</span> Adicionar tarefa</button>
+                    <div class="cycle-adjust-group">
+                        <button id="btn-cycle-decrease" type="button" class="btn-secondary btn-cycle">-</button>
+                        <button id="btn-cycle-increase" type="button" class="btn-secondary btn-cycle">+</button>
+                    </div>
+                    <button id="btn-show-filters" type="button" class="filter-btn" aria-label="Mostrar filtros">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line>
                             <line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line>
@@ -852,8 +863,8 @@
                         <label for="task-tags">Tags (separadas por vírgula)</label>
                         <input type="text" id="task-tags" placeholder="prova, resumo, matemática">
                     </div>
-                    <button id="btn-save-task" class="btn-save-task">Salvar Tarefa</button>
-                    <button id="btn-cancel-task" class="btn-cancel-task">Cancelar</button>
+                    <button id="btn-save-task" type="button" class="btn-save-task">Salvar Tarefa</button>
+                    <button id="btn-cancel-task" type="button" class="btn-cancel-task">Cancelar</button>
                 </div>
 
                 <div id="filter-panel" class="filter-panel">
@@ -919,7 +930,10 @@
                     <button class="scale-option" data-scale="C">C: Leve (40-45 min)</button>
                 </div>
             </div>
-            <div id="cycle-counter" class="cycle-counter">Ciclo: 0/4</div>
+            <div class="cycle-section">
+                <div id="cycle-counter" class="cycle-counter">Ciclo: 0/4</div>
+                <button id="btn-pause-mode" class="btn-secondary btn-pause-toggle">pausa</button>
+            </div>
         </div>
 
         <div id="slider-container" class="slider-container">
@@ -940,7 +954,7 @@
 
         <div class="timer-btn-group">
             <button id="btn-start" class="btn-start">Iniciar</button>
-            <button id="btn-hide-timer" class="btn-secondary">Ocultar</button>
+            <button id="btn-reset" class="btn-secondary">Zerar</button>
         </div>
     </main>
 
@@ -995,23 +1009,90 @@
                 autoBreak: false,
                 scale: 'A',
                 sliderB: 25,
-                sliderC: 40
+                sliderC: 40,
+                cycleCount: 0,
+                pauseMode: false
+            },
+            timer: {
+                currentScale: 'A',
+                currentState: 'focus',
+                cycleCount: 0,
+                pauseMode: false,
+                timeLeft: 20 * 60,
+                totalTime: 20 * 60,
+                isRunning: false,
+                lastSavedAt: Date.now()
             }
         };
 
         // Fallback de memória caso o localStorage esteja bloqueado (ex: abertura via file://)
         const memStore = {};
+        const channel = ('BroadcastChannel' in window) ? new BroadcastChannel('cadenciaStateChannel') : null;
+
+        function broadcastState() {
+            if (channel) channel.postMessage({ type: 'cadenciaStateUpdated' });
+        }
+
+        function saveToIndexedDB(data) {
+            if (!('indexedDB' in window)) return;
+            const request = indexedDB.open('cadenciaStateDB', 1);
+            request.onupgradeneeded = () => {
+                request.result.createObjectStore('stateStore');
+            };
+            request.onsuccess = () => {
+                const db = request.result;
+                const tx = db.transaction('stateStore', 'readwrite');
+                tx.objectStore('stateStore').put(data, 'cadenciaState');
+                tx.oncomplete = () => db.close();
+            };
+            request.onerror = () => console.warn('IndexedDB unavailable:', request.error);
+        }
+
+        function loadFromIndexedDB() {
+            return new Promise(resolve => {
+                if (!('indexedDB' in window)) return resolve(null);
+                const request = indexedDB.open('cadenciaStateDB', 1);
+                request.onupgradeneeded = () => {
+                    request.result.createObjectStore('stateStore');
+                };
+                request.onsuccess = () => {
+                    const db = request.result;
+                    const tx = db.transaction('stateStore', 'readonly');
+                    const getReq = tx.objectStore('stateStore').get('cadenciaState');
+                    getReq.onsuccess = () => {
+                        resolve(getReq.result || null);
+                        db.close();
+                    };
+                    getReq.onerror = () => {
+                        resolve(null);
+                        db.close();
+                    };
+                };
+                request.onerror = () => resolve(null);
+            });
+        }
 
         function saveState() {
+            if (isRestoringState) return;
             try {
                 appState.notes.title = document.getElementById('note-title').value;
                 appState.notes.body = document.getElementById('note-body').value;
-                
                 appState.postits = Array.from(document.querySelectorAll('.post-it')).map(p => ({
                     x: p.style.left, y: p.style.top, w: p.style.width, h: p.style.height,
                     z: p.style.zIndex, title: p.querySelector('.post-it-title').value,
                     body: p.querySelector('.post-it-body').value
                 }));
+
+                appState.timer = {
+                    currentScale,
+                    currentState,
+                    cycleCount,
+                    pauseMode,
+                    timeLeft,
+                    totalTime,
+                    isRunning,
+                    lastSavedAt: Date.now()
+                };
 
                 const dataStr = JSON.stringify(appState);
                 try {
@@ -1019,20 +1100,28 @@
                 } catch (e) {
                     memStore['cadenciaState'] = dataStr; // Fallback
                 }
+                saveToIndexedDB(dataStr);
+                broadcastState();
             } catch (err) {
                 console.error("Erro ao salvar estado:", err);
             }
         }
 
-        function loadState() {
+        async function loadState() {
+            isRestoringState = true;
             let saved = null;
             try {
                 saved = localStorage.getItem('cadenciaState');
             } catch (e) {
                 saved = memStore['cadenciaState'];
             }
-            
-            if (!saved) return;
+            if (!saved) {
+                saved = await loadFromIndexedDB();
+            }
+            if (!saved) {
+                isRestoringState = false;
+                return;
+            }
             
             try {
                 appState = JSON.parse(saved);
@@ -1052,7 +1141,35 @@
                 // Restaura Escalas
                 scales.B.focus = appState.settings.sliderB || 25;
                 scales.C.focus = appState.settings.sliderC || 40;
-                changeScale(appState.settings.scale || 'A');
+                cycleCount = appState.settings.cycleCount || 0;
+                pauseMode = appState.settings.pauseMode || false;
+                const savedScale = appState.settings.scale || 'A';
+                changeScale(savedScale, pauseMode, false);
+
+                if (appState.timer) {
+                    currentScale = appState.timer.currentScale || currentScale;
+                    currentState = appState.timer.currentState || currentState;
+                    cycleCount = appState.timer.cycleCount || cycleCount;
+                    pauseMode = appState.timer.pauseMode || pauseMode;
+                    if (pauseMode && currentState === 'pause') btnPauseMode.classList.add('active');
+
+                    timeLeft = appState.timer.timeLeft ?? (currentState === 'focus' ? scales[currentScale].focus * 60 : currentState === 'long' ? scales[currentScale].long * 60 : scales[currentScale].short * 60);
+                    totalTime = appState.timer.totalTime ?? timeLeft;
+
+                    const elapsedSeconds = appState.timer.isRunning && appState.timer.lastSavedAt ? Math.floor((Date.now() - appState.timer.lastSavedAt) / 1000) : 0;
+                    if (elapsedSeconds > 0) {
+                        advanceTimerBy(elapsedSeconds);
+                    }
+
+                    if (appState.timer.isRunning) {
+                        startTimer();
+                    } else {
+                        stopTimer();
+                        btnStart.textContent = 'Iniciar';
+                    }
+                }
+                cycleCounter.textContent = `Ciclo: ${cycleCount}/4`;
+                isRestoringState = false;
 
                 // Restaura Notas
                 document.getElementById('note-title').value = appState.notes.title || '';
@@ -1185,10 +1302,12 @@
         let currentScale = 'A';
         let currentState = 'focus';
         let cycleCount = 0;
+        let pauseMode = false;
         let timeLeft = scales.A.focus * 60;
         let totalTime = scales.A.focus * 60;
         let isRunning = false;
         let timerInterval = null;
+        let isRestoringState = false;
 
         const scaleBtn = document.getElementById('scale-btn');
         const scaleDropdown = document.getElementById('scale-dropdown');
@@ -1200,6 +1319,10 @@
         const timerText = document.getElementById('timer-text');
         const sessionName = document.getElementById('session-name');
         const btnStart = document.getElementById('btn-start');
+        const btnReset = document.getElementById('btn-reset');
+        const btnPauseMode = document.getElementById('btn-pause-mode');
+        const btnCycleDecrease = document.getElementById('btn-cycle-decrease');
+        const btnCycleIncrease = document.getElementById('btn-cycle-increase');
         const timerWrapper = document.querySelector('.timer-wrapper');
 
         const radius = 140;
@@ -1226,6 +1349,10 @@
                 name = 'Pausa Longa';
                 ringColor = 'var(--vermelho-pausa)';
                 textColor = 'var(--vermelho-pausa)';
+            } else if (currentState === 'pause') {
+                name = 'Pausa Manual';
+                ringColor = 'var(--amarelo-escuro)';
+                textColor = 'var(--amarelo-escuro)';
             }
             sessionName.textContent = name;
             sessionName.style.color = textColor;
@@ -1233,8 +1360,12 @@
             cycleCounter.textContent = `Ciclo: ${cycleCount}/4`;
         }
 
-        function changeScale(scale) {
+        function changeScale(scale, keepPause = false, shouldSave = true) {
             currentScale = scale; currentState = 'focus';
+            if (!keepPause) {
+                pauseMode = false;
+                btnPauseMode.classList.remove('active');
+            }
             stopTimer(); btnStart.textContent = 'Iniciar';
             if(scale === 'A') scaleBtn.textContent = 'Escala A: Foco Denso';
             if(scale === 'B') scaleBtn.textContent = 'Escala B: Foco Moderado';
@@ -1250,26 +1381,98 @@
                 timeLeft = scales[scale].focus * 60; totalTime = scales[scale].focus * 60;
             }
             appState.settings.scale = scale;
-            saveState();
+            if (shouldSave) saveState();
+            updateDisplay();
+        }
+
+        function setTimerState(state) {
+            currentState = state;
+            if (state === 'focus') {
+                timeLeft = scales[currentScale].focus * 60;
+                totalTime = scales[currentScale].focus * 60;
+            } else if (state === 'short' || state === 'pause') {
+                timeLeft = scales[currentScale].short * 60;
+                totalTime = scales[currentScale].short * 60;
+            } else if (state === 'long') {
+                timeLeft = scales[currentScale].long * 60;
+                totalTime = scales[currentScale].long * 60;
+            }
+            updateDisplay();
+        }
+
+        function advanceTimerBy(seconds) {
+            while (seconds > 0) {
+                if (seconds < timeLeft) {
+                    timeLeft -= seconds;
+                    seconds = 0;
+                    break;
+                }
+                seconds -= timeLeft;
+                if (currentState === 'focus') {
+                    cycleCount++;
+                    if (cycleCount === 4) {
+                        currentState = 'long';
+                        timeLeft = scales[currentScale].long * 60;
+                        totalTime = timeLeft;
+                    } else {
+                        currentState = 'short';
+                        timeLeft = scales[currentScale].short * 60;
+                        totalTime = timeLeft;
+                    }
+                } else if (currentState === 'pause') {
+                    currentState = 'focus';
+                    pauseMode = false;
+                    btnPauseMode.classList.remove('active');
+                    timeLeft = scales[currentScale].focus * 60;
+                    totalTime = timeLeft;
+                } else {
+                    if (currentState === 'long') {
+                        cycleCount = 0;
+                    }
+                    currentState = 'focus';
+                    timeLeft = scales[currentScale].focus * 60;
+                    totalTime = timeLeft;
+                }
+            }
             updateDisplay();
         }
 
         function tick() {
-            if (timeLeft > 0) { timeLeft--; updateDisplay(); } else { transitionState(); }
+            if (timeLeft > 0) {
+                timeLeft--; updateDisplay(); saveState();
+            } else { transitionState(); }
         }
 
         function transitionState() {
             stopTimer(); playSound();
             if (currentState === 'focus') {
                 cycleCount++;
+                appState.settings.cycleCount = cycleCount;
+                saveState();
                 if (cycleCount === 4) {
-                    currentState = 'long'; timeLeft = scales[currentScale].long * 60; totalTime = scales[currentScale].long * 60;
+                    currentState = 'long';
+                    timeLeft = scales[currentScale].long * 60;
+                    totalTime = scales[currentScale].long * 60;
                 } else {
-                    currentState = 'short'; timeLeft = scales[currentScale].short * 60; totalTime = scales[currentScale].short * 60;
+                    currentState = 'short';
+                    timeLeft = scales[currentScale].short * 60;
+                    totalTime = scales[currentScale].short * 60;
                 }
+            } else if (currentState === 'pause') {
+                currentState = 'focus';
+                pauseMode = false;
+                btnPauseMode.classList.remove('active');
+                timeLeft = scales[currentScale].focus * 60;
+                totalTime = scales[currentScale].focus * 60;
             } else {
-                if (currentState === 'long') cycleCount = 0;
-                currentState = 'focus'; timeLeft = scales[currentScale].focus * 60; totalTime = scales[currentScale].focus * 60;
+                if (currentState === 'long') {
+                    cycleCount = 0;
+                    appState.settings.cycleCount = cycleCount;
+                    saveState();
+                }
+                currentState = 'focus';
+                timeLeft = scales[currentScale].focus * 60;
+                totalTime = scales[currentScale].focus * 60;
             }
             updateDisplay();
             if (currentState === 'focus' && autoFocusToggle.checked) startTimer();
@@ -1277,12 +1480,48 @@
             else btnStart.textContent = 'Iniciar';
         }
 
-        function startTimer() { isRunning = true; btnStart.textContent = 'Pausar'; timerInterval = setInterval(tick, 1000); }
-        function stopTimer() { isRunning = false; btnStart.textContent = 'Retomar'; clearInterval(timerInterval); }
+        function startTimer() { isRunning = true; btnStart.textContent = 'Pausar'; clearInterval(timerInterval); timerInterval = setInterval(tick, 1000); saveState(); }
+        function stopTimer() { isRunning = false; btnStart.textContent = 'Retomar'; clearInterval(timerInterval); saveState(); }
 
         btnStart.addEventListener('click', () => {
             initAudioContext();
             if (isRunning) stopTimer(); else startTimer();
+        });
+
+        btnReset.addEventListener('click', () => {
+            stopTimer();
+            if (pauseMode) setTimerState('pause');
+            else setTimerState(currentState);
+            btnStart.textContent = 'Iniciar';
+        });
+
+        btnPauseMode.addEventListener('click', () => {
+            pauseMode = !pauseMode;
+            stopTimer();
+            if (pauseMode) {
+                btnPauseMode.classList.add('active');
+                setTimerState('pause');
+            } else {
+                btnPauseMode.classList.remove('active');
+                setTimerState('focus');
+            }
+            btnStart.textContent = 'Iniciar';
+            appState.settings.pauseMode = pauseMode;
+            saveState();
+        });
+
+        btnCycleDecrease.addEventListener('click', () => {
+            cycleCount = Math.max(0, cycleCount - 1);
+            appState.settings.cycleCount = cycleCount;
+            saveState();
+            updateDisplay();
+        });
+
+        btnCycleIncrease.addEventListener('click', () => {
+            cycleCount = Math.min(4, cycleCount + 1);
+            appState.settings.cycleCount = cycleCount;
+            saveState();
+            updateDisplay();
         });
 
         scaleBtn.addEventListener('click', (e) => { e.stopPropagation(); scaleDropdown.classList.toggle('show'); });
@@ -1294,7 +1533,7 @@
         timeSlider.addEventListener('input', (e) => {
             const newTime = parseInt(e.target.value);
             sliderValue.textContent = `${newTime} min`;
-            if (currentState === 'focus' && !isRunning) {
+            if (currentState === 'focus' && !isRunning && !pauseMode) {
                 scales[currentScale].focus = newTime; timeLeft = newTime * 60; totalTime = newTime * 60; updateDisplay();
             }
             if (currentScale === 'B') appState.settings.sliderB = newTime;
@@ -1332,6 +1571,16 @@
         const btnCancelTask = document.getElementById('btn-cancel-task');
         const taskList = document.getElementById('task-list');
 
+        function clearTaskForm() {
+            taskNameInput.value = '';
+            taskStatusInput.value = 'a_fazer';
+            taskPriorityInput.value = 'baixa';
+            taskDateInput.value = '';
+            taskDateTextInput.value = '';
+            taskTagsInput.value = '';
+            editingTaskId = null;
+        }
+
         const taskNameInput = document.getElementById('task-name');
         const taskStatusInput = document.getElementById('task-status');
         const taskPriorityInput = document.getElementById('task-priority');
@@ -1340,8 +1589,7 @@
         const taskTagsInput = document.getElementById('task-tags');
 
         btnShowForm.addEventListener('click', () => {
-            editingTaskId = null;
-            taskForm.reset();
+            clearTaskForm();
             taskForm.classList.add('show');
             filterPanel.classList.remove('show');
             btnShowFilters.classList.remove('active');
@@ -1387,6 +1635,7 @@
                 tasks.push(taskData);
             }
 
+            clearTaskForm();
             taskForm.classList.remove('show');
             appState.tasks = tasks;
             saveState();
@@ -1664,10 +1913,32 @@
         });
 
         // ====================== INICIALIZAÇÃO ======================
-        updateDisplay();
-        updateMiniDisplay();
-        renderTasks();
-        loadState();
+        if (channel) {
+            channel.onmessage = (evt) => {
+                if (evt.data && evt.data.type === 'cadenciaStateUpdated') {
+                    loadState();
+                }
+            };
+        }
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'cadenciaState') {
+                loadState();
+            }
+        });
+
+        async function initApp() {
+            updateDisplay();
+            updateMiniDisplay();
+            renderTasks();
+            await loadState();
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW registration failed', err));
+            }
+            window.addEventListener('beforeunload', saveState);
+        }
+
+        initApp();
 
     </script>
 </body>
