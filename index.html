@@ -339,8 +339,17 @@
             padding: 20px;
         }
 
+        body.popup-mode {
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--pergaminho), #f7efe0);
+        }
+
+        body.popup-mode > *:not(.popup-shell) {
+            display: none !important;
+        }
+
         body.popup-mode .popup-shell {
-            display: flex;
+            display: flex !important;
         }
 
         .popup-card {
@@ -1799,10 +1808,22 @@
         progressRing.style.strokeDasharray = circumference;
         progressRing.style.strokeDashoffset = 0;
 
+        const popupShell = document.getElementById('popup-shell');
+        const popupProgressRing = document.getElementById('popup-progress-ring');
+        const popupTimerText = document.getElementById('popup-timer-text');
+        const popupSessionName = document.getElementById('popup-session-name');
+        const popupCloseBtn = document.getElementById('popup-close-btn');
+        const popupStartBtn = document.getElementById('popup-start-btn');
+        const popupHideBtn = document.getElementById('popup-hide-btn');
+
         const isPopupMode = new URLSearchParams(window.location.search).get('popup') === '1';
         if (isPopupMode) {
             document.body.classList.add('popup-mode');
             document.title = 'Cadência • Cronômetro';
+            if (popupShell) {
+                popupShell.hidden = false;
+                popupShell.removeAttribute('hidden');
+            }
         }
 
         function updatePopupScale() {
@@ -1831,17 +1852,13 @@
         window.addEventListener('load', () => {
             updatePopupScale();
             syncPopupState();
+            if (isPopupMode && window.opener && !window.opener.closed) {
+                window.opener.postMessage({ type: 'cadenciaPopupReady' }, '*');
+            }
         });
         updatePopupScale();
         syncPopupState();
 
-        const popupShell = document.getElementById('popup-shell');
-        const popupProgressRing = document.getElementById('popup-progress-ring');
-        const popupTimerText = document.getElementById('popup-timer-text');
-        const popupSessionName = document.getElementById('popup-session-name');
-        const popupCloseBtn = document.getElementById('popup-close-btn');
-        const popupStartBtn = document.getElementById('popup-start-btn');
-        const popupHideBtn = document.getElementById('popup-hide-btn');
         const popupRadius = 64;
         const popupCircumference = 2 * Math.PI * popupRadius;
         if (popupProgressRing) {
@@ -2173,6 +2190,10 @@
                 popoutWindow = null;
                 appState.ui.floatingTimerOpen = false;
                 saveState();
+                return;
+            }
+            if (event.data?.type === 'cadenciaPopupReady' && window.opener && !window.opener.closed) {
+                window.opener.postMessage({ type: 'cadenciaStateUpdated', state: appState }, '*');
                 return;
             }
             if (event.data?.type === 'cadenciaStateUpdated' && event.data.state) {
