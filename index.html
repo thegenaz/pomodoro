@@ -238,10 +238,6 @@
             justify-content: center;
         }
 
-        .timer-wrapper.is-popout-open {
-            display: none;
-        }
-
         .timer-popout {
             position: fixed;
             bottom: 20px;
@@ -341,7 +337,7 @@
             align-items: center;
             justify-content: center;
             background: linear-gradient(135deg, var(--pergaminho), #f7efe0);
-            padding: 24px;
+            padding: max(12px, min(20px, 2.5vw));
             z-index: 50;
         }
 
@@ -362,15 +358,18 @@
         }
 
         .popup-card {
-            width: min(100%, 320px);
+            width: min(100%, clamp(220px, 82vw, 280px));
+            max-height: calc(100vh - 24px);
             background: rgba(255,255,255,0.96);
             border: 1px solid rgba(31, 107, 103, 0.16);
-            border-radius: 24px;
+            border-radius: clamp(14px, 2.8vw, 20px);
             box-shadow: 0 16px 40px rgba(0,0,0,0.16);
-            padding: 20px;
+            padding: clamp(12px, 2vw, 16px);
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: clamp(8px, 1.6vw, 12px);
+            transform: scale(var(--popup-scale, 1));
+            transform-origin: center center;
         }
 
         .popup-header {
@@ -381,7 +380,7 @@
 
         .popup-title {
             font-family: 'Lora', serif;
-            font-size: 0.95rem;
+            font-size: clamp(0.72rem, 1.25vw, 0.95rem);
             font-weight: 600;
             color: var(--petroleo-escuro);
             text-transform: uppercase;
@@ -410,8 +409,8 @@
         }
 
         .popup-timer svg {
-            width: 140px;
-            height: 140px;
+            width: clamp(88px, calc(42vw * var(--popup-scale, 1)), 120px);
+            height: clamp(88px, calc(42vw * var(--popup-scale, 1)), 120px);
         }
 
         .popup-texts {
@@ -433,8 +432,22 @@
 
         .popup-actions .btn-start,
         .popup-actions .btn-secondary {
-            padding: 0.7rem 1.2rem;
-            font-size: 0.95rem;
+            padding: clamp(0.55rem, 1.4vw, 0.65rem) clamp(0.8rem, 1.8vw, 1rem);
+            font-size: clamp(0.76rem, 1.2vw, 0.9rem);
+        }
+
+        .popup-timer .timer-text {
+            font-size: clamp(2.1rem, 7.2vw, 3.1rem);
+            letter-spacing: -1px;
+        }
+
+        .popup-timer .session-name {
+            font-size: clamp(0.78rem, 2.3vw, 0.95rem);
+            margin-top: 0.25rem;
+        }
+
+        .popup-timer .progress-ring {
+            stroke-width: clamp(6px, 1.2vw, 8px);
         }
 
         .progress-ring {
@@ -1457,7 +1470,7 @@
                     activeTab: document.querySelector('.tab-btn.active')?.dataset.tab || 'tarefas',
                     leftPanelOpen: leftPanel.classList.contains('open'),
                     rightPanelOpen: rightPanel.classList.contains('open'),
-                    mainTimerHidden: timerWrapper.classList.contains('hidden-time'),
+                    mainTimerHidden: false,
                     miniTimerHidden: recallBox.classList.contains('hidden-time'),
                     floatingTimerOpen: popoutWindow && !popoutWindow.hidden,
                     floatingTimerPosition: popoutWindow ? {
@@ -1486,6 +1499,13 @@
                 }
                 saveToIndexedDB(dataStr);
                 broadcastState();
+
+                if (popoutWindow && !popoutWindow.closed && popoutWindow !== window) {
+                    popoutWindow.postMessage({ type: 'cadenciaStateUpdated', state: appState }, '*');
+                }
+                if (window.opener && !window.opener.closed && window.opener !== window) {
+                    window.opener.postMessage({ type: 'cadenciaStateUpdated', state: appState }, '*');
+                }
             } catch (err) {
                 console.error("Erro ao salvar estado:", err);
             }
@@ -1584,9 +1604,8 @@
                 rightToggle.setAttribute('aria-expanded', uiState.rightPanelOpen ? 'true' : 'false');
                 rightToggle.setAttribute('aria-label', uiState.rightPanelOpen ? 'Fechar configurações' : 'Abrir configurações');
 
-                if (uiState.mainTimerHidden) timerWrapper.classList.add('hidden-time');
-                else timerWrapper.classList.remove('hidden-time');
-                btnHideTimer.textContent = timerWrapper.classList.contains('hidden-time') ? 'Revelar' : 'Ocultar';
+                timerWrapper.classList.remove('hidden-time');
+                btnHideTimer.textContent = 'Ocultar';
 
                 if (uiState.miniTimerHidden) recallBox.classList.add('hidden-time');
                 else recallBox.classList.remove('hidden-time');
@@ -1600,8 +1619,6 @@
                     popoutWindow.style.bottom = floatingPosition.bottom || '';
                     if (!uiState.floatingTimerOpen) {
                         timerWrapper.classList.remove('is-popout-open');
-                    } else {
-                        timerWrapper.classList.add('is-popout-open');
                     }
                 }
 
@@ -1796,6 +1813,17 @@
             document.title = 'Cadência • Cronômetro';
         }
 
+        function updatePopupScale() {
+            const widthScale = Math.max(0.72, Math.min(1, (window.innerWidth || 320) / 320));
+            const heightScale = Math.max(0.72, Math.min(1, (window.innerHeight || 420) / 420));
+            const scale = Math.min(widthScale, heightScale);
+            document.documentElement.style.setProperty('--popup-scale', scale.toFixed(3));
+        }
+
+        window.addEventListener('resize', updatePopupScale);
+        window.addEventListener('load', updatePopupScale);
+        updatePopupScale();
+
         const popupShell = document.getElementById('popup-shell');
         const popupProgressRing = document.getElementById('popup-progress-ring');
         const popupTimerText = document.getElementById('popup-timer-text');
@@ -1848,6 +1876,10 @@
                 popupSessionName.textContent = name;
                 popupSessionName.style.color = textColor;
                 popupTimerText.style.color = textColor;
+            }
+
+            if (popupStartBtn) {
+                popupStartBtn.textContent = isRunning ? 'Pausar' : 'Iniciar';
             }
         }
 
@@ -1938,8 +1970,6 @@
             stopTimer(); playSound();
             if (currentState === 'focus') {
                 cycleCount++;
-                appState.settings.cycleCount = cycleCount;
-                saveState();
                 if (cycleCount === 4) {
                     currentState = 'long';
                     timeLeft = scales[currentScale].long * 60;
@@ -1958,21 +1988,22 @@
             } else {
                 if (currentState === 'long') {
                     cycleCount = 0;
-                    appState.settings.cycleCount = cycleCount;
-                    saveState();
                 }
                 currentState = 'focus';
                 timeLeft = scales[currentScale].focus * 60;
                 totalTime = scales[currentScale].focus * 60;
             }
+
+            appState.settings.cycleCount = cycleCount;
             updateDisplay();
+            saveState();
             if (currentState === 'focus' && autoFocusToggle.checked) startTimer();
             else if (currentState !== 'focus' && autoBreakToggle.checked) startTimer();
             else btnStart.textContent = 'Iniciar';
         }
 
-        function startTimer() { isRunning = true; btnStart.textContent = 'Pausar'; clearInterval(timerInterval); timerInterval = setInterval(tick, 1000); saveState(); }
-        function stopTimer() { isRunning = false; btnStart.textContent = 'Retomar'; clearInterval(timerInterval); saveState(); }
+        function startTimer() { isRunning = true; btnStart.textContent = 'Pausar'; if (popupStartBtn) popupStartBtn.textContent = 'Pausar'; clearInterval(timerInterval); timerInterval = setInterval(tick, 1000); saveState(); }
+        function stopTimer() { isRunning = false; btnStart.textContent = 'Retomar'; if (popupStartBtn) popupStartBtn.textContent = 'Iniciar'; clearInterval(timerInterval); saveState(); }
 
         btnStart.addEventListener('click', () => {
             initAudioContext();
@@ -2069,9 +2100,8 @@
         });
 
         function toggleTimerVisibility() {
-            const isHidden = popupShell
-                ? popupShell.classList.toggle('hidden-time')
-                : timerWrapper.classList.toggle('hidden-time');
+            const isHidden = popupShell ? popupShell.classList.toggle('hidden-time') : false;
+            timerWrapper.classList.remove('hidden-time');
             btnHideTimer.textContent = isHidden ? 'Revelar' : 'Ocultar';
             if (popupHideBtn) popupHideBtn.textContent = isHidden ? 'Revelar' : 'Ocultar';
             saveState();
@@ -2099,13 +2129,13 @@
             popoutWindow = window.open(
                 popupUrl.toString(),
                 'cadenciaTimerPopup',
-                'width=340,height=460,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=no'
+                'width=280,height=360,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=no'
             );
             if (popoutWindow) {
                 popoutWindow.focus();
                 popoutWindow.document.title = 'Cadência • Cronômetro';
+                popoutWindow.postMessage({ type: 'cadenciaStateUpdated', state: appState }, '*');
             }
-            timerWrapper.classList.add('is-popout-open');
             appState.ui.floatingTimerOpen = true;
             saveState();
         }
@@ -2114,9 +2144,16 @@
             btnPopoutTimer.addEventListener('click', openPopoutTimer);
         }
 
+        window.addEventListener('message', (event) => {
+            if (event.data?.type === 'cadenciaStateUpdated' && event.data.state) {
+                appState = normalizeAppState(event.data.state);
+                localStorage.setItem('cadenciaState', JSON.stringify(appState));
+                loadState();
+            }
+        });
+
         if (popupCloseBtn) {
             popupCloseBtn.addEventListener('click', () => {
-                timerWrapper.classList.remove('is-popout-open');
                 if (window.opener && !window.opener.closed) {
                     window.opener.appState = appState;
                     window.opener.saveState?.();
